@@ -7,7 +7,7 @@ Unfolding with quantum computing
 git clone https://github.com/rdisipio/quantum_unfolding.git
 ```
 
-# Test out calculation
+## Test out calculation
 
 In the file `toy_unfolding_classical.py` you can modify the definition of xedges, of the truth-level vector (`x`) and the response matrix (`R`). The code compares the product `Rx=y` carried out with decimal and binary representation, the latter to be used for the quantum computation.
 
