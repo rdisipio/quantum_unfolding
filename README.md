@@ -22,6 +22,12 @@ Multiplying `Rv` "extracts" the column corresponding to the non-zero element, e.
 The matrix-vector multiplication is carried out as usual, with the only exception that the carry bit has to be taken into account. 
 
 ```
+./test_matrix_multiplication.py
+```
+
+To test the unfolding:
+
+```
 ./toy_unfolding_classical.py
 ```
 

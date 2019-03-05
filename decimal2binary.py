@@ -1,5 +1,7 @@
 import numpy as np
 
+n_bits = 8
+int_max = np.uint8( 2**n_bits - 1)
 
 def d2b(R, n_bits=8):
     n_cols = R.shape[0]

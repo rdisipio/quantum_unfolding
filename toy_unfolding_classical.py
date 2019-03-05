@@ -3,57 +3,83 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from decimal2binary import *
+import likelihood as lh
 
 np.set_printoptions(precision=1, linewidth=200, suppress=True)
 
-# All numbers are 4 bits long, i.e. between 0 (0b0000) and 15 (0b1111)
+# All numbers are 8 bits long.
+# Smaller Numpy dtype is uint8, i.e. [0-255]
 
+
+######################
+# Set the inputs here
+######################
+
+# binning:
 xmin = 0
 xmax = 6
-Nbins = 3
-xedges = np.linspace(xmin, xmax, Nbins+1)
+n_bins = 3
+xedges = np.linspace(xmin, xmax, n_bins+1)  # for uniform binning
 
-print("INFO: bin edges (%i):" % Nbins)
-print(xedges)
-
-# Set here the truth-level distribution
-# smaller dtype is uint8, i.e. [0-255]
+# truth-level:
 x = [5, 10, 3]
-x = np.array(x, dtype='uint8')  # (3)
-print("INFO: x decimal representation:", x.shape)
-print(x)
 
-# convert to bit representation
-x_b = np.unpackbits(x)  # (4)*8 = (24)
-print("INFO: x binary representation:", x_b.shape)
-print(x_b)
-
-# Response matrix
+# response matrix:
 R = [[5, 1, 0],
      [1, 3, 1],
      [0, 1, 2]]
-R = np.array(R, dtype='uint8')  # (3,3)
-print("INFO: Response matrix:", R.shape)
-print(R)
+
+# pseudo-data:
+d = [32, 40, 15]
+
+# convert inputs to appropriate format
+
+print("INFO: bin edges (%i):" % n_bins)
+print(xedges)
+
+x = np.array(x, dtype='uint8')
+x_b = np.unpackbits(x)
+print("INFO: x binary representation:", x_b.shape)
+print(x_b)
+
+d = np.array(d, dtype='uint8')
+d_b = np.unpackbits(d)
+print("INFO: d binary representation:", d_b.shape)
+print(d_b)
+
+# Response matrix
+
+R = np.array(R, dtype='uint8')
 
 R_b = d2b(R)
 print("INFO: R binary representation:", R_b.shape)
 print(R_b)
 
-y = np.dot(R, x)
-#y = np.array(y, dtype='uint8')
-print("INFO: y=R*x decimal representation:", y.shape)
-print(y)
+# Now loop to find the minimum of the likelihood
+n_itr = 5000
+k_min = -1
+z_min = 1000000000
+y_hat_best = None
+for k in range(n_itr):
+    x_hat = np.random.randint(0, int_max, size=(n_bins), dtype='uint8')
+    x_hat_b = np.unpackbits(x_hat)
 
-# convert to bit representation
-y_b = np.unpackbits(y)  # (32)
-print("INFO: y=R*x binary representation:", y_b.shape)
-print(y_b)
+    y_hat_b = binary_matmul(R_b, x_hat_b)
 
-z_b = binary_matmul(R_b, x_b)
-print("INFO: z_b=R_b*x_b binary representation:", z_b.shape)
-print(z_b)
+    z = lh.log_gauss(d_b, y_hat_b)
+    #print(k, z)
 
-z = np.packbits(z_b)
-print("INFO: z=Rx decimal representation:", z.shape)
-print(z)
+    if z > z_min:
+        continue
+
+    z_min = z
+    k_min = k
+    y_hat_best_b = np.array(y_hat_b, dtype='uint8')
+
+print("INFO: logL minimum found at iteration %i:" % k_min)
+print(y_hat_best_b)
+y_hat_best = np.packbits(y_hat_best_b)
+print(y_hat_best)
+print("INFO: truth level:")
+print(x_b)
+print(x)
