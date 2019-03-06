@@ -60,26 +60,39 @@ print(R)
 print("INFO: R binary representation:", R_b.shape)
 print(R_b)
 
-# Now loop to find the minimum of the likelihood
-n_itr = 5000
+# Now loop to find the minimum of the likelihood (brute force approach)
+n_itr = 500000
 k_min = -1
-logL_min = 10000000
+logL_min = 1000000000000
 x_hat_bestfit_b = None
 for k in range(n_itr):
-    #x_hat = np.random.randint(0, int_max, size=(n_bins), dtype='uint8')
-    #x_hat_b = np.unpackbits(x_hat)
-    x_hat_b = np.random.randint(0, 2, size=(n_bins*n_bits), dtype='uint8')
+    # generate decimal, then convert to binary...
+    x_hat = np.random.randint(0, int_max, size=(n_bins), dtype='uint8')
+    x_hat_b = np.unpackbits(x_hat)
+
+    # or generate binary, then convert to decimal
+    #x_hat_b = np.random.randint(0, 2, size=(n_bins*n_bits), dtype='uint8')
+
+    # apply response to obtain reco-level prediction
     y_hat_b = binary_matmul(R_b, x_hat_b)
 
+    # calculate likelihood
     logL = lh.log_gauss(d_b, y_hat_b)
+    #logL, r = lh.test_lhood(d_b, y_hat_b)
     #print(k, logL_min, logL)
 
+    # update minimum
     if logL > logL_min:
         continue
+
+    print(k, logL_min, logL)
 
     logL_min = logL
     k_min = k
     x_hat_bestfit_b = np.array(x_hat_b, dtype='uint8')
+
+    if logL == 0:
+        break
 
 print("INFO: logL minimum found at iteration %i:" % k_min)
 x_hat_bestfit = np.packbits(x_hat_bestfit_b)
