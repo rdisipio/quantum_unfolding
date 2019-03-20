@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
+from scipy import optimize
 import matplotlib.pyplot as plt
 from decimal2binary import *
 import likelihood as lh
@@ -60,6 +61,27 @@ print(R)
 print("INFO: R binary representation:", R_b.shape)
 print(R_b)
 
+params = [d_b, R_b]
+# initial guess
+x_0 = np.random.randint(0, int_max, size=(n_bins), dtype='uint8')
+res = optimize.minimize(lh.log_gauss,
+                        x_0,
+                        args=params,
+                        method='Powell')
+
+print(res)
+
+x_star = np.array([int(n) for n in res.x], dtype='uint8')
+x_star_b = np.unpackbits(x_star)
+print("INFO: bestfit:")
+print(x_star)
+print(x_star_b)
+print("INFO: truth level:")
+print(x_b)
+print(x)
+
+exit(0)
+
 # Now loop to find the minimum of the likelihood (brute force approach)
 n_itr = 500000
 k_min = -1
@@ -67,18 +89,14 @@ logL_min = 1000000000000
 x_hat_bestfit_b = None
 for k in range(n_itr):
     # generate decimal, then convert to binary...
-    x_hat = np.random.randint(0, int_max, size=(n_bins), dtype='uint8')
-    x_hat_b = np.unpackbits(x_hat)
+    #x_hat = np.random.randint(0, int_max, size=(n_bins), dtype='uint8')
+    #x_hat_b = np.unpackbits(x_hat)
 
     # or generate binary, then convert to decimal
-    #x_hat_b = np.random.randint(0, 2, size=(n_bins*n_bits), dtype='uint8')
-
-    # apply response to obtain reco-level prediction
-    y_hat_b = binary_matmul(R_b, x_hat_b)
+    x_hat_b = np.random.randint(0, 2, size=(n_bins*n_bits), dtype='uint8')
 
     # calculate likelihood
-    logL = lh.log_gauss(d_b, y_hat_b)
-    #logL, r = lh.test_lhood(d_b, y_hat_b)
+    logL = lh.log_gauss(y_hat_b, data=d_b, resp=R_b)
     #print(k, logL_min, logL)
 
     # update minimum

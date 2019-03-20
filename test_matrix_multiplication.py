@@ -10,7 +10,7 @@ np.set_printoptions(precision=1, linewidth=200, suppress=True)
 
 xmin = 0
 xmax = 6
-Nbins = 3
+Nbins = 2
 xedges = np.linspace(xmin, xmax, Nbins+1)
 
 print("INFO: bin edges (%i):" % Nbins)
@@ -18,7 +18,7 @@ print(xedges)
 
 # Set here the truth-level distribution
 # smaller dtype is uint8, i.e. [0-255]
-x = [5, 10, 3]
+x = [5, 10]
 x = np.array(x, dtype='uint8')  # (3)
 print("INFO: x decimal representation:", x.shape)
 print(x)
@@ -29,9 +29,8 @@ print("INFO: x binary representation:", x_b.shape)
 print(x_b)
 
 # Response matrix
-R = [[5, 1, 0],
-     [1, 3, 1],
-     [0, 1, 2]]
+R = [[3, 1],
+     [1, 2]]
 R = np.array(R, dtype='uint8')  # (3,3)
 print("INFO: Response matrix:", R.shape)
 print(R)

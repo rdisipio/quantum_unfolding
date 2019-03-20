@@ -1,22 +1,36 @@
 from math import exp, sqrt
 import numpy as np
+from decimal2binary import *
 
 
-def log_gauss(d_b, y_b):
-    d_d = np.packbits(d_b)
-    y_d = np.packbits(y_b)
-    n = d_d.shape[0]
+def log_gauss(x, *params):
+
+    d_b = params[0][0]
+    R_b = params[0][1]
+    n_bits = d_b.shape[0]
+    n_bins = n_bits // 8
+
+    x = np.uint8([int(n) for n in x])
+    x_b = np.unpackbits(x)
+
+    # apply response to obtain reco-level prediction
+    y_b = binary_matmul(R_b, x_b)
+
     z = 0.
-    for k in range(n):
-        #s = (int(d_d[k]) - int(y_d[k]))
-        #z += s*s
-        s = d_d[k] - y_d[k]
-        z += abs(s)
+    for b in range(n_bins):
+        s_d = 0.
+        s_y = 0.
+        for k in range(8):
+            j = 8*b + k
+            s_d += np.power(2, k) * d_b[j]
+            s_y += np.power(2, k) * y_b[j]
+        z += abs(s_d - s_y)
 
     # regularization parameter (Tikhonov 2nd derivative)
     rho = 0.
-    for k in range(n-1, 1, n-2):
-        rho += abs(y_d[k-1] - y_d[k+1])
+    # for k in range(n-1, 1, n-2):
+    #    s = np.power(2, k)*(y_b[k-1] - y_b[k+1])
+    #    rho += abs(s)
 
     # strength of regularization
     lmbd = 0
