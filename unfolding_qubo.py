@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+
+import os
+import sys
+import argparse
 import numpy as np
 from scipy import optimize
 import matplotlib.pyplot as plt
@@ -6,6 +10,10 @@ from decimal2binary import *
 import dimod
 
 np.set_printoptions(precision=1, linewidth=200, suppress=True)
+
+parser = argparse.ArgumentParser("Quantum unfolding")
+parser.add_argument('-l', '--lmbd', default=0.00)
+args = parser.parse_args()
 
 # truth-level:
 x = [5, 10, 3]
@@ -17,9 +25,9 @@ R = [[3, 1, 0], [1, 3, 1], [0, 1, 2]]
 d = [32, 40, 15]
 
 # convert to numpy arrays
-x = np.array(x, dtype='int8')
-R = np.array(R, dtype='int8')
-b = np.array(d, dtype='int8')
+x = np.array(x, dtype='uint8')
+R = np.array(R, dtype='uint8')
+b = np.array(d, dtype='uint8')
 
 # closure test
 b = np.dot(R, x)
@@ -30,7 +38,7 @@ N = x.shape[0]
 print("INFO: N bins:", N)
 print("INFO: n-bits encoding:", n)
 
-lmbd = 0.  # regularization strength
+lmbd = np.uint8(args.lmbd)  # regularization strength
 D = laplacian(N)
 
 # convert to bits
@@ -49,6 +57,7 @@ print(R_b)
 print("INFO: Laplacian operator:")
 print(D)
 print(D_b)
+print("INFO: regularization strength:", lmbd)
 
 # Create QUBO operator
 
