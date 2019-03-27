@@ -70,7 +70,7 @@ for j in range(n*N):
         idx = (j, k)
         J[idx] = 0
         for i in range(N):
-            J[idx] += 2*(R_b[i][j]*R_b[i][k] + lmbd*L_b[i][k]*L_b[i][k])
+            J[idx] += 2*(R_b[i][j]*R_b[i][k] + lmbd*L_b[i][j]*L_b[i][k])
         print("J", idx, ":", J[idx])
 
 # QUBO
