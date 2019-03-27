@@ -31,3 +31,10 @@ To test the unfolding:
 ./toy_unfolding_classical.py
 ```
 
+Test QUBO unfolding using DWave dimod package:
+```
+./unfolding_qubo.py -l 0 # no regularization
+./unfolding_qubo.py -l 1 # regularization strength = 1
+./unfolding_qubo.py -l 2 # regularization strength = 2
+# etc..
+```
