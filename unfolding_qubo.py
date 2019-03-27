@@ -17,12 +17,12 @@ R = [[3, 1, 0], [1, 3, 1], [0, 1, 2]]
 d = [32, 40, 15]
 
 # convert to numpy arrays
-x = np.array(x)
-R = np.array(R)
-d = np.array(d)
+x = np.array(x, dtype='int8')
+R = np.array(R, dtype='int8')
+b = np.array(d, dtype='int8')
 
 # closure test
-d = np.dot(R, x)
+b = np.dot(R, x)
 
 n = 4
 N = x.shape[0]
@@ -30,25 +30,25 @@ N = x.shape[0]
 print("INFO: N bins:", N)
 print("INFO: n-bits encoding:", n)
 
-lmbd = 1.  # regularization strength
-L = laplacian(N)
+lmbd = 0.  # regularization strength
+D = laplacian(N)
 
 # convert to bits
-x_b = discretize_vector(x)
-d_b = discretize_vector(d)
-R_b = discretize_matrix(R)
-L_b = discretize_matrix(L)
+x_b = discretize_vector(x, n)
+b_b = discretize_vector(b, n)
+R_b = discretize_matrix(R, n)
+D_b = discretize_matrix(D, n)
 
 print("INFO: Truth-level x:")
 print(x, x_b)
-print("INFO: pseudo-data d:")
-print(d, d_b)
+print("INFO: pseudo-data b:")
+print(b, b_b)
 print("INFO: Response matrix:")
 print(R)
 print(R_b)
 print("INFO: Laplacian operator:")
-print(L)
-print(L_b)
+print(D)
+print(D_b)
 
 # Create QUBO operator
 
@@ -59,9 +59,9 @@ for j in range(n*N):
     h[idx] = 0
     for i in range(N):
         h[idx] += (R_b[i][j]*R_b[i][j] -
-                   2*R_b[i][j] * d_b[i] +
-                   lmbd*L_b[i][j]*L_b[i][j])
-    print("h", idx, ":", h[idx])
+                   2*R_b[i][j] * b[i] +
+                   lmbd*D_b[i][j]*D_b[i][j])
+    #print("h", idx, ":", h[idx])
 
 # quadratic constraints
 J = {}
@@ -70,21 +70,29 @@ for j in range(n*N):
         idx = (j, k)
         J[idx] = 0
         for i in range(N):
-            J[idx] += 2*(R_b[i][j]*R_b[i][k] + lmbd*L_b[i][j]*L_b[i][k])
-        print("J", idx, ":", J[idx])
+            J[idx] += 2*(R_b[i][j]*R_b[i][k] + lmbd*D_b[i][j]*D_b[i][k])
+        #print("J", idx, ":", J[idx])
 
 # QUBO
 bqm = dimod.BinaryQuadraticModel(linear=h,
                                  quadratic=J,
                                  offset=0.0,
                                  vartype=dimod.BINARY)
+print("INFO: solving the QUBO model...")
 result = dimod.ExactSolver().sample(bqm)
-energy_min = 1e10
+print("INFO: ...done.")
+
+energy_min = 1e15
 q = None
 for sample, energy in result.data(['sample', 'energy']):
+    #print(sample, energy)
+
     if energy > energy_min:
         continue
     energy_min = energy
-    q = sample.values()
-    #print(sample, energy)
-print(q, energy_min)
+    q = list(sample.values())
+
+q = np.array(q)
+y = compact_vector(q, n)
+print("INFO: best-fit:   ", q, "::", y, ":: E =", energy_min)
+print("INFO: truth value:", x_b, "::", x)
