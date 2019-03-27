@@ -95,7 +95,7 @@ def binary_matmul(A, x):
     return y
 
 
-def discretize_vector(x, n=8):
+def discretize_vector(x, n=4):
     N = len(x)
 
     q = np.zeros(N*n)
@@ -110,7 +110,17 @@ def discretize_vector(x, n=8):
     return np.uint8(q)
 
 
-def discretize_matrix(A, n=8):
+def compact_vector(q, n=4):
+    N = q.shape[0] // n
+    x = np.zeros(N, dtype='uint8')
+    for i in range(N):
+        for j in range(n):
+            p = np.power(2, n-j-1)
+            x[i] += p*q[(n*i+j)]
+    return x
+
+
+def discretize_matrix(A, n=4):
     # x has N elements (decimal)
     # q has Nx elements (binary)
     # A has N columns
