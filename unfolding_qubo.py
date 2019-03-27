@@ -59,7 +59,8 @@ for j in range(n*N):
     h[idx] = 0
     for i in range(N):
         h[idx] += (R_b[i][j]*R_b[i][j] -
-                   2*R_b[i][j] * d_b[i] + lmbd*L_b[i][j]*L_b[i][j])
+                   2*R_b[i][j] * d_b[i] +
+                   lmbd*L_b[i][j]*L_b[i][j])
     print("h", idx, ":", h[idx])
 
 # quadratic constraints
