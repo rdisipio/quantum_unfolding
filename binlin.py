@@ -60,12 +60,12 @@ def binlin(A, b, scaling=1 / 8.0):
 
 
 # setup
-n = 3
+n = 11
 A, b = setup_random(n)
 # A, b = setup_easy()
 scaling = 1.0 / n
 chain_strength = 1.0
-num_reads = 1000
+num_reads = 10000
 # sampling
 bqm = binlin(A, b, scaling=scaling)
 samples = sampler.sample(bqm, num_reads=num_reads).aggregate()
