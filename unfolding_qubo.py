@@ -99,10 +99,10 @@ print("INFO: solving the QUBO model...")
 result = None
 if args.backend == 'cpu':
     print("INFO: running on CPU...")
-    result = sampler.sample(bqm, num_reads=num_reads).aggregate()
+    result = dimod.ExactSolver().sample(bqm)
 elif args.backend == 'qpu':
     print("INFO: running on QPU...")
-    result = dimod.ExactSolver().sample(bqm)
+    result = sampler.sample(bqm, num_reads=num_reads).aggregate()
 print("INFO: ...done.")
 
 result = result.first
