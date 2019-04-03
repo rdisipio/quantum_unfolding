@@ -17,6 +17,7 @@ np.set_printoptions(precision=1, linewidth=200, suppress=True)
 parser = argparse.ArgumentParser("Quantum unfolding")
 parser.add_argument('-l', '--lmbd', default=0.00)
 parser.add_argument('-n', '--nreads', default=1000)
+parser.add_argument('-b', '--backend', default='cpu')
 args = parser.parse_args()
 
 num_reads = int(args.nreads)
@@ -95,21 +96,18 @@ bqm = dimod.BinaryQuadraticModel(linear=h,
                                  vartype=dimod.BINARY)
 print("INFO: solving the QUBO model...")
 
-#result = sampler.sample(bqm, num_reads=num_reads).aggregate()
-result = dimod.ExactSolver().sample(bqm)
+result = None
+if args.backend == 'cpu':
+    print("INFO: running on CPU...")
+    result = sampler.sample(bqm, num_reads=num_reads).aggregate()
+elif args.backend == 'qpu':
+    print("INFO: running on QPU...")
+    result = dimod.ExactSolver().sample(bqm)
 print("INFO: ...done.")
 
-energy_min = 1e15
-q = None
-for sample, energy in result.data(['sample', 'energy']):
-    print(sample, energy)
-
-    if energy > energy_min:
-        continue
-    energy_min = energy
-    q = list(sample.values())
-
-q = np.array(q)
+result = result.first
+energy = result.energy
+q = np.array(list(result.sample.values()))
 y = compact_vector(q, n)
-print("INFO: best-fit:   ", q, "::", y, ":: E =", energy_min)
+print("INFO: best-fit:   ", q, "::", y, ":: E =", energy)
 print("INFO: truth value:", x_b, "::", x)
