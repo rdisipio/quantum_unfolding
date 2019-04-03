@@ -34,37 +34,37 @@ def d2b(a, n_bits=8):
     '''Convert a list or a list of lists to binary representation
     '''
     A = np.array(a, dtype='uint8')
-    if A.ndim == 1:
-        return np.unpackbits(A)
-    else:
-        n_cols = A.shape[0]
 
-        n_vectors = n_cols * n_bits
+    n_cols = A.shape[0]
 
-        R_b = np.zeros([n_vectors, n_vectors], dtype='uint8')
+    n_vectors = n_cols * n_bits
 
-        # the complete space is spanned by (n_cols X n_bits) standard basis vectors v, i.e.:
-        # ( 0, 0, ..., 1 )
-        # ( 0, 1, ..., 0 )
-        # ( 1, 0, ..., 0 )
+    R_b = np.zeros([n_vectors, n_vectors], dtype='uint8')
 
-        # Multiplying Rv "extracts" the column corresponding the non-zero element
-        # By iteration, we can convert R from decimal to binary
+    # the complete space is spanned by (n_cols X n_bits) standard basis vectors v, i.e.:
+    # ( 0, 0, ..., 1 )
+    # ( 0, 1, ..., 0 )
+    # ( 1, 0, ..., 0 )
 
-        for i in range(n_vectors):
-            v_bin = np.zeros(n_vectors, dtype='uint8')
-            v_bin[i] = 1
-            # print(v_bin)
+    # Multiplying Rv "extracts" the column corresponding the non-zero element
+    # By iteration, we can convert R from decimal to binary
 
-            v_dec = np.packbits(v_bin)
-            # print(x_dec)
+    for i in range(n_vectors):
+        v_bin = np.zeros(n_vectors, dtype='uint8')
+        v_bin[i] = 1
+        # print(v_bin)
 
-            u_dec = np.dot(A, v_dec)
-            u_bin = np.unpackbits(u_dec)
+        #v_dec = np.packbits(v_bin)
+        v_dec = compact_vector(v_bin, n_bits)
+        # print(x_dec)
 
-            R_b[:, i] = u_bin
+        u_dec = np.dot(A, v_dec)
+        #u_bin = np.unpackbits(u_dec)
+        u_bin = discretize_vector(u_dec, n_bits)
 
-        return R_b
+        R_b[:, i] = u_bin
+
+    return R_b
 
 
 def half_adder(x, y):
