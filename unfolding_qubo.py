@@ -8,12 +8,18 @@ from scipy import optimize
 import matplotlib.pyplot as plt
 from decimal2binary import *
 import dimod
+from dwave.system import EmbeddingComposite, DWaveSampler
+
+sampler = EmbeddingComposite(DWaveSampler())
 
 np.set_printoptions(precision=1, linewidth=200, suppress=True)
 
 parser = argparse.ArgumentParser("Quantum unfolding")
 parser.add_argument('-l', '--lmbd', default=0.00)
+parser.add_argument('-n', '--nreads', default=1000)
 args = parser.parse_args()
+
+num_reads = int(args.nreads)
 
 # truth-level:
 x = [5, 10, 3]
@@ -88,13 +94,15 @@ bqm = dimod.BinaryQuadraticModel(linear=h,
                                  offset=0.0,
                                  vartype=dimod.BINARY)
 print("INFO: solving the QUBO model...")
+
+#result = sampler.sample(bqm, num_reads=num_reads).aggregate()
 result = dimod.ExactSolver().sample(bqm)
 print("INFO: ...done.")
 
 energy_min = 1e15
 q = None
 for sample, energy in result.data(['sample', 'energy']):
-    #print(sample, energy)
+    print(sample, energy)
 
     if energy > energy_min:
         continue
