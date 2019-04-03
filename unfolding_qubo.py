@@ -16,7 +16,7 @@ np.set_printoptions(precision=1, linewidth=200, suppress=True)
 
 parser = argparse.ArgumentParser("Quantum unfolding")
 parser.add_argument('-l', '--lmbd', default=0.00)
-parser.add_argument('-n', '--nreads', default=1000)
+parser.add_argument('-n', '--nreads', default=10000)
 parser.add_argument('-b', '--backend', default='cpu')
 args = parser.parse_args()
 
