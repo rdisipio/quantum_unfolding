@@ -11,7 +11,7 @@ np.set_printoptions(precision=1, linewidth=200, suppress=True)
 parser = argparse.ArgumentParser("Quantum unfolding")
 parser.add_argument('-l', '--lmbd', default=0.00)
 parser.add_argument('-n', '--nreads', default=10000)
-parser.add_argument('-b', '--backend', default='cpu')
+parser.add_argument('-b', '--backend', default='qpu')
 args = parser.parse_args()
 
 num_reads = int(args.nreads)
@@ -98,7 +98,11 @@ elif args.backend == 'qpu':
     print("INFO: running on QPU...")
     embedding = get_embedding_with_short_chain(J)
     sampler = FixedEmbeddingComposite(DWaveSampler(), embedding)
-    result = sampler.sample(bqm, num_reads=num_reads).aggregate()
+    solver_parameters = {'num_reads': num_reads,
+                         'postprocess': 'optimization',
+                         'auto_scale': True,
+                         'num_spin_reversal_transforms': 2}
+    result = sampler.sample(bqm, **solver_parameters)
 print("INFO: ...done.")
 
 result = result.first
