@@ -9,27 +9,34 @@ import matplotlib.pyplot as plt
 from decimal2binary import *
 import dimod
 from dwave.system import EmbeddingComposite, DWaveSampler
+import neal
 
-sampler = EmbeddingComposite(DWaveSampler())
+sampler_qpu = EmbeddingComposite(DWaveSampler())
+sampler_sim = neal.SimulatedAnnealingSampler()
 
 np.set_printoptions(precision=1, linewidth=200, suppress=True)
 
 parser = argparse.ArgumentParser("Quantum unfolding")
 parser.add_argument('-l', '--lmbd', default=0.00)
 parser.add_argument('-n', '--nreads', default=10000)
-parser.add_argument('-b', '--backend', default='cpu')
+parser.add_argument('-b', '--backend', default='cpu')  # [cpu, qpu, sim]
 args = parser.parse_args()
 
 num_reads = int(args.nreads)
 
 # truth-level:
-x = [5, 10, 3]
+x = [5, 8, 12, 6, 2]
 
 # response matrix:
-R = [[3, 1, 0], [1, 3, 1], [0, 1, 2]]
+R = [[1, 2, 0, 0, 0],
+     [1, 2, 1, 1, 0],
+     [0, 1, 3, 3, 0],
+     [0, 2, 2, 3, 2],
+     [0, 0, 0, 1, 2]
+     ]
 
 # pseudo-data:
-d = [32, 40, 15]
+d = [12, 32, 40, 15, 10]
 
 # convert to numpy arrays
 x = np.array(x, dtype='uint8')
@@ -39,7 +46,7 @@ b = np.array(d, dtype='uint8')
 # closure test
 b = np.dot(R, x)
 
-n = 4
+n = 8
 N = x.shape[0]
 
 print("INFO: N bins:", N)
@@ -102,7 +109,10 @@ if args.backend == 'cpu':
     result = dimod.ExactSolver().sample(bqm)
 elif args.backend == 'qpu':
     print("INFO: running on QPU...")
-    result = sampler.sample(bqm, num_reads=num_reads).aggregate()
+    result = sampler_qpu.sample(bqm, num_reads=num_reads).aggregate()
+elif args.backend == 'sim':
+    print("INFO: running on simulated annealer...")
+    result = sampler_sim.sample(bqm, num_reads=num_reads).aggregate()
 print("INFO: ...done.")
 
 result = result.first
