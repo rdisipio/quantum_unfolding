@@ -7,12 +7,12 @@ import numpy as np
 from scipy import optimize
 import matplotlib.pyplot as plt
 from decimal2binary import *
-import dimod
-from dwave.system import EmbeddingComposite, DWaveSampler
-import neal
 
-sampler_qpu = EmbeddingComposite(DWaveSampler())
-sampler_sim = neal.SimulatedAnnealingSampler()
+# DWave stuff
+import dimod
+from dwave.system import EmbeddingComposite, FixedEmbeddingComposite, DWaveSampler
+from dwave_tools import get_embedding_with_short_chain
+import neal
 
 np.set_printoptions(precision=1, linewidth=200, suppress=True)
 
@@ -30,7 +30,7 @@ x = [5, 8, 12, 6, 2]
 # response matrix:
 R = [[1, 2, 0, 0, 0],
      [1, 2, 1, 1, 0],
-     [0, 1, 3, 3, 0],
+     [0, 1, 3, 2, 0],
      [0, 2, 2, 3, 2],
      [0, 0, 0, 1, 2]
      ]
@@ -108,11 +108,23 @@ if args.backend == 'cpu':
     print("INFO: running on CPU...")
     result = dimod.ExactSolver().sample(bqm)
 elif args.backend == 'qpu':
-    print("INFO: running on QPU...")
-    result = sampler_qpu.sample(bqm, num_reads=num_reads).aggregate()
+    print("INFO: running on QPU (n_reads=%i) ..." % num_reads)
+
+    embedding = get_embedding_with_short_chain(J)
+    sampler = FixedEmbeddingComposite(DWaveSampler(), embedding)
+
+    solver_parameters = {'num_reads': num_reads,
+                         'postprocess': 'optimization',
+                         'auto_scale': True,
+                         'num_spin_reversal_transforms': 2}
+    result = sampler.sample(bqm, **solver_parameters)
+#    result = sampler_qpu.sample(bqm, num_reads=num_reads).aggregate()
 elif args.backend == 'sim':
-    print("INFO: running on simulated annealer...")
-    result = sampler_sim.sample(bqm, num_reads=num_reads).aggregate()
+    print("INFO: running on simulated annealer (n_reads=%i) ..." % num_reads)
+
+    sampler = neal.SimulatedAnnealingSampler()
+    result = sampler.sample(bqm, num_reads=num_reads).aggregate()
+
 print("INFO: ...done.")
 
 result = result.first
