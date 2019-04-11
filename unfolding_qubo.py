@@ -107,22 +107,31 @@ result = None
 if args.backend == 'cpu':
     print("INFO: running on CPU...")
     result = dimod.ExactSolver().sample(bqm)
-elif args.backend == 'qpu':
-    print("INFO: running on QPU (n_reads=%i) ..." % num_reads)
 
+elif args.backend == 'qpu':
+    print("INFO: running on QPU" )
+
+    print("INFO: finding optimal minor embedding...")
     embedding = get_embedding_with_short_chain(J)
+
+    print("INFO: creating DWave sampler...")
     sampler = FixedEmbeddingComposite(DWaveSampler(), embedding)
 
     solver_parameters = {'num_reads': num_reads,
                          'postprocess': 'optimization',
                          'auto_scale': True,
                          'num_spin_reversal_transforms': 2}
+
+    print( "INFO: annealing (n_reads=%i) ..." % num_reads)
     result = sampler.sample(bqm, **solver_parameters)
 #    result = sampler_qpu.sample(bqm, num_reads=num_reads).aggregate()
+
 elif args.backend == 'sim':
-    print("INFO: running on simulated annealer (n_reads=%i) ..." % num_reads)
+    print("INFO: running on simulated annealer (neal)" )
 
     sampler = neal.SimulatedAnnealingSampler()
+
+    print( "INFO: annealing (n_reads=%i) ..." % num_reads)
     result = sampler.sample(bqm, num_reads=num_reads).aggregate()
 
 print("INFO: ...done.")

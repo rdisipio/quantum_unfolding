@@ -14,7 +14,7 @@ def max_chain_length(embedding: dict)->int:
     return max_
 
 
-def get_embedding_with_short_chain(J: dict, tries=5, verbose=False)->dict:
+def get_embedding_with_short_chain(J: dict, tries=10, verbose=True)->dict:
     '''Try a few probabilistic embeddings and return the one with the shortest
     chain length
     :param J: Couplings
@@ -37,7 +37,7 @@ def get_embedding_with_short_chain(J: dict, tries=5, verbose=False)->dict:
         except:
             pass
     if verbose:
-        print(best_chain_length, max_chain_length(embedding))
+        print( "Best chain length: %i :: max chain length: %i :: maxsize: %i" % (best_chain_length, max_chain_length(embedding), sys.maxsize ) )
     if best_chain_length == sys.maxsize:
         raise Exception("Cannot find embedding")
     return embedding
