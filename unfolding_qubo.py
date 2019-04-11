@@ -96,8 +96,9 @@ if args.backend == 'cpu':
     result = dimod.ExactSolver().sample(bqm)
 elif args.backend == 'qpu':
     print("INFO: running on QPU...")
-    embedding = get_embedding_with_short_chain(J)
-    sampler = FixedEmbeddingComposite(DWaveSampler(), embedding)
+    hardware_sampler = DWaveSampler()
+    embedding = get_embedding_with_short_chain(J, processor=hardware_sampler.adjacency)
+    sampler = FixedEmbeddingComposite(hardware_sampler, embedding)
     solver_parameters = {'num_reads': num_reads,
                          'postprocess': 'optimization',
                          'auto_scale': True,

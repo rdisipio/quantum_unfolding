@@ -14,7 +14,8 @@ def max_chain_length(embedding: dict)->int:
     return max_
 
 
-def get_embedding_with_short_chain(J: dict, tries=5, verbose=False)->dict:
+def get_embedding_with_short_chain(J: dict, tries: int = 5,
+                                   processor: dict = None, verbose=False)->dict:
     '''Try a few probabilistic embeddings and return the one with the shortest
     chain length
 
@@ -24,14 +25,15 @@ def get_embedding_with_short_chain(J: dict, tries=5, verbose=False)->dict:
 
     :return: Returns the minor embedding
     '''
-    # The hardware topology: 16 by 16 pieces of K_4,4 unit cells
-    processor = dnx.chimera_graph(16, 16, 4)
+    if processor is None:
+        # The hardware topology: 16 by 16 pieces of K_4,4 unit cells
+        processor = dnx.chimera_graph(16, 16, 4).edges()
     # Try a few embeddings
     best_chain_length = sys.maxsize
     source = list(J.keys())
     for _ in range(tries):
         try:
-            emb = minorminer.find_embedding(source, processor.edges())
+            emb = minorminer.find_embedding(source, processor)
             chain_length = max_chain_length(emb)
             if chain_length > 0 and chain_length < best_chain_length:
                 embedding = emb
