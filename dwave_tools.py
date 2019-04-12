@@ -15,7 +15,7 @@ def max_chain_length(embedding: dict)->int:
 
 
 def get_embedding_with_short_chain(J: dict, tries: int = 5,
-                                   processor: dict = None, verbose=False)->dict:
+                                   processor: list = None, verbose=False)->dict:
     '''Try a few probabilistic embeddings and return the one with the shortest
     chain length
 

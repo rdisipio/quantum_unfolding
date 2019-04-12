@@ -97,7 +97,7 @@ if args.backend == 'cpu':
 elif args.backend == 'qpu':
     print("INFO: running on QPU...")
     hardware_sampler = DWaveSampler()
-    embedding = get_embedding_with_short_chain(J, processor=hardware_sampler.adjacency)
+    embedding = get_embedding_with_short_chain(J, processor=hardware_sampler.edgelist)
     sampler = FixedEmbeddingComposite(hardware_sampler, embedding)
     solver_parameters = {'num_reads': num_reads,
                          'postprocess': 'optimization',
