@@ -36,8 +36,8 @@ R = [[1, 2, 0, 0, 0],
      ]
 
 # smaller example
-#x = [5, 10, 3]
-#R = [[3, 1, 0], [1, 3, 1], [0, 1, 2]]
+x = [5, 10, 3]
+R = [[3, 1, 0], [1, 3, 1], [0, 1, 2]]
 
 # pseudo-data:
 d = [12, 32, 40, 15, 10]
@@ -50,7 +50,7 @@ b = np.array(d, dtype='uint8')
 # closure test
 b = np.dot(R, x)
 
-n = 8
+n = 4
 N = x.shape[0]
 
 print("INFO: N bins:", N)
@@ -132,7 +132,7 @@ elif args.backend == 'qpu':
                          'num_spin_reversal_transforms': 2}
 
     print( "INFO: annealing (n_reads=%i) ..." % num_reads)
-    result = sampler.sample(bqm, **solver_parameters)
+    result = sampler.sample(bqm, **solver_parameters).aggregate()
 #    result = sampler_qpu.sample(bqm, num_reads=num_reads).aggregate()
 
 elif args.backend == 'sim':
