@@ -35,6 +35,10 @@ R = [[1, 2, 0, 0, 0],
      [0, 0, 0, 1, 2]
      ]
 
+# smaller example
+#x = [5, 10, 3]
+#R = [[3, 1, 0], [1, 3, 1], [0, 1, 2]]
+
 # pseudo-data:
 d = [12, 32, 40, 15, 10]
 
@@ -111,11 +115,16 @@ if args.backend == 'cpu':
 elif args.backend == 'qpu':
     print("INFO: running on QPU" )
 
+    hardware_sampler = DWaveSampler()
+
     print("INFO: finding optimal minor embedding...")
-    embedding = get_embedding_with_short_chain(J)
+    embedding = get_embedding_with_short_chain(J,
+                                tries=20,
+                                processor=hardware_sampler.edgelist,
+                                verbose=False)
 
     print("INFO: creating DWave sampler...")
-    sampler = FixedEmbeddingComposite(DWaveSampler(), embedding)
+    sampler = FixedEmbeddingComposite(hardware_sampler, embedding)
 
     solver_parameters = {'num_reads': num_reads,
                          'postprocess': 'optimization',
