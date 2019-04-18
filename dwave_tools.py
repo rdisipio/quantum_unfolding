@@ -50,3 +50,11 @@ def get_embedding_with_short_chain(J: dict, tries: int = 5,
     if best_chain_length == sys.maxsize:
         raise Exception("Cannot find embedding")
     return embedding
+
+
+def get_energy(bqm, sample):
+    # see https://docs.ocean.dwavesys.com/projects/dimod/en/latest/_modules/dimod/reference/samplers/exact_solver.html
+    M = bqm.binary.to_numpy_matrix()
+    off = bqm.binary.offset
+    E = sample.dot(M).dot(sample.transpose())
+    return float(E) + off

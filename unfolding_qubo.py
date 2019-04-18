@@ -11,7 +11,7 @@ from decimal2binary import *
 # DWave stuff
 import dimod
 from dwave.system import EmbeddingComposite, FixedEmbeddingComposite, DWaveSampler
-from dwave_tools import get_embedding_with_short_chain
+from dwave_tools import get_embedding_with_short_chain, get_energy
 import neal
 
 np.set_printoptions(precision=1, linewidth=200, suppress=True)
@@ -159,8 +159,9 @@ if dry_run:
     exit(0)
 
 result = result.first
-energy = result.energy
+energy_bestfit = result.energy
 q = np.array(list(result.sample.values()))
 y = compact_vector(q, n)
-print("INFO: best-fit:   ", q, "::", y, ":: E =", energy)
-print("INFO: truth value:", x_b, "::", x)
+energy_true = get_energy(bqm, x_b)
+print("INFO: best-fit:   ", q, "::", y, ":: E =", energy_bestfit)
+print("INFO: truth value:", x_b, "::", x, ":: E =", energy_true)
