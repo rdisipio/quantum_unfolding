@@ -20,9 +20,13 @@ parser = argparse.ArgumentParser("Quantum unfolding")
 parser.add_argument('-l', '--lmbd', default=0.00)
 parser.add_argument('-n', '--nreads', default=10000)
 parser.add_argument('-b', '--backend', default='sim')  # [cpu, qpu, sim]
+parser.add_argument('-d', '--dry-run', action='store_true', default=False)
 args = parser.parse_args()
 
 num_reads = int(args.nreads)
+dry_run = bool(args.dry_run)
+if dry_run:
+    print("WARNING: dry run. There will be no results at the end.")
 
 # truth-level:
 x = [5, 8, 12, 6, 2]
@@ -110,18 +114,23 @@ print("INFO: solving the QUBO model...")
 result = None
 if args.backend == 'cpu':
     print("INFO: running on CPU...")
-    result = dimod.ExactSolver().sample(bqm)
+    if not dry_run:
+        result = dimod.ExactSolver().sample(bqm)
 
 elif args.backend == 'qpu':
-    print("INFO: running on QPU" )
+    print("INFO: running on QPU")
 
     hardware_sampler = DWaveSampler()
 
     print("INFO: finding optimal minor embedding...")
     embedding = get_embedding_with_short_chain(J,
-                                tries=20,
-                                processor=hardware_sampler.edgelist,
-                                verbose=False)
+                                               tries=100,
+                                               processor=hardware_sampler.edgelist,
+                                               verbose=True)
+    if embedding == None:
+        raise("ERROR: could not find embedding")
+    else:
+        print(embedding)
 
     print("INFO: creating DWave sampler...")
     sampler = FixedEmbeddingComposite(hardware_sampler, embedding)
@@ -131,19 +140,24 @@ elif args.backend == 'qpu':
                          'auto_scale': True,
                          'num_spin_reversal_transforms': 2}
 
-    print( "INFO: annealing (n_reads=%i) ..." % num_reads)
-    result = sampler.sample(bqm, **solver_parameters).aggregate()
-#    result = sampler_qpu.sample(bqm, num_reads=num_reads).aggregate()
+    print("INFO: annealing (n_reads=%i) ..." % num_reads)
+    if not dry_run:
+        result = sampler.sample(bqm, **solver_parameters).aggregate()
 
 elif args.backend == 'sim':
-    print("INFO: running on simulated annealer (neal)" )
+    print("INFO: running on simulated annealer (neal)")
 
     sampler = neal.SimulatedAnnealingSampler()
 
-    print( "INFO: annealing (n_reads=%i) ..." % num_reads)
-    result = sampler.sample(bqm, num_reads=num_reads).aggregate()
+    print("INFO: annealing (n_reads=%i) ..." % num_reads)
+    if not dry_run:
+        result = sampler.sample(bqm, num_reads=num_reads).aggregate()
 
 print("INFO: ...done.")
+
+if dry_run:
+    print("INFO: dry runn.")
+    exit(0)
 
 result = result.first
 energy = result.energy
