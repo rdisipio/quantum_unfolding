@@ -45,7 +45,8 @@ def get_embedding_with_short_chain(J: dict, tries: int = 5,
     if verbose:
         print("INFO: Best chain length / max chain length:",
               best_chain_length, '/', max_chain_length(embedding))
+        print("INFO: embedding:")
+        print(embedding)
     if best_chain_length == sys.maxsize:
         raise Exception("Cannot find embedding")
-    print("")
     return embedding

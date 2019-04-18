@@ -129,8 +129,7 @@ elif args.backend == 'qpu':
                                                verbose=True)
     if embedding == None:
         raise("ERROR: could not find embedding")
-    else:
-        print(embedding)
+        exit(0)
 
     print("INFO: creating DWave sampler...")
     sampler = FixedEmbeddingComposite(hardware_sampler, embedding)
