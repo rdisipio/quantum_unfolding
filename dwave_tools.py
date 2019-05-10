@@ -6,6 +6,15 @@ from dwave.system.composites import FixedEmbeddingComposite
 from dwave.system.samplers import DWaveSampler
 
 
+def anneal_sched_custom():
+    return (
+        (0.0, 0.0),   # Start everything at 0
+        (10.0, 0.50),
+        (110, 0.50),
+        (120.0, 1.0)
+    )
+
+
 def max_chain_length(embedding: dict) -> int:
     max_ = 0
     for _, chain in embedding.items():

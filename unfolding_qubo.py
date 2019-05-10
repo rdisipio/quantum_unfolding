@@ -12,7 +12,7 @@ from decimal2binary import *
 # DWave stuff
 import dimod
 from dwave.system import EmbeddingComposite, FixedEmbeddingComposite, DWaveSampler
-from dwave_tools import get_embedding_with_short_chain, get_energy
+from dwave_tools import get_embedding_with_short_chain, get_energy, anneal_sched_custom
 import neal
 
 np.set_printoptions(precision=1, linewidth=200, suppress=True)
@@ -41,8 +41,8 @@ R = [[1, 1, 0, 0, 0],
      ]
 
 # smaller example
-x = [5, 7, 3]
-R = [[3, 1, 0],    [1, 2, 1],     [0, 1, 3]]
+#x = [5, 7, 3]
+#R = [[3, 1, 0],    [1, 2, 1],     [0, 1, 3]]
 
 # pseudo-data:
 d = [12, 32, 40, 15, 10]
@@ -137,10 +137,12 @@ elif args.backend == 'qpu':
     sampler = EmbeddingComposite(hardware_sampler)  # default
 
     solver_parameters = {'num_reads': num_reads,
-                         #'postprocess':   # 'sampling',  # 'optimization',
+                         #'postprocess':   'sampling',
+                         #'postprocess':  'optimization',
                          'auto_scale': True,
-                         'annealing_time': 20,  # default: 20 us
-                         'num_spin_reversal_transforms': 2}
+                         #'annealing_time': 20,  # default: 20 us
+                         'anneal_schedule': anneal_sched_custom(),
+                         'num_spin_reversal_transforms': 2}  # default: 2
 
     print("INFO: annealing (n_reads=%i) ..." % num_reads)
     if not dry_run:
@@ -163,9 +165,9 @@ if dry_run:
     print("INFO: dry runn.")
     exit(0)
 
-result = result.first
-energy_bestfit = result.energy
-q = np.array(list(result.sample.values()))
+best_fit = result.first
+energy_bestfit = best_fit.energy
+q = np.array(list(best_fit.sample.values()))
 y = compact_vector(q, n)
 energy_true = get_energy(bqm, x_b)
 print("INFO: best-fit:   ", q, "::", y, ":: E =", energy_bestfit)
