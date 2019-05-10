@@ -51,3 +51,10 @@ Chose your backend wisely!
 ./unfolding_qubo.py -l 0 -b qpu -n 2000 # use real QPU: you need a DWave Leap token
 ```
 
+# Closure test
+
+Using e.g. a 5x5 matrix:
+ 
+```
+./unfolding_qubo.py -l 0 -n 10000 -b sim
+```

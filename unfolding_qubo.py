@@ -3,6 +3,7 @@
 import os
 import sys
 import argparse
+import datetime as dt
 import numpy as np
 from scipy import optimize
 import matplotlib.pyplot as plt
@@ -18,7 +19,7 @@ np.set_printoptions(precision=1, linewidth=200, suppress=True)
 
 parser = argparse.ArgumentParser("Quantum unfolding")
 parser.add_argument('-l', '--lmbd', default=0.00)
-parser.add_argument('-n', '--nreads', default=10000)
+parser.add_argument('-n', '--nreads', default=1000)
 parser.add_argument('-b', '--backend', default='sim')  # [cpu, qpu, sim]
 parser.add_argument('-d', '--dry-run', action='store_true', default=False)
 args = parser.parse_args()
@@ -32,16 +33,16 @@ if dry_run:
 x = [5, 8, 12, 6, 2]
 
 # response matrix:
-R = [[1, 2, 0, 0, 0],
-     [1, 2, 1, 1, 0],
-     [0, 1, 3, 2, 0],
-     [0, 2, 2, 3, 2],
+R = [[1, 1, 0, 0, 0],
+     [1, 2, 1, 0, 0],
+     [0, 1, 3, 1, 0],
+     [0, 0, 1, 3, 1],
      [0, 0, 0, 1, 2]
      ]
 
 # smaller example
-#x = [5, 10, 3]
-#R = [[3, 1, 0], [1, 3, 1], [0, 1, 2]]
+x = [5, 7, 3]
+R = [[3, 1, 0],    [1, 2, 1],     [0, 1, 3]]
 
 # pseudo-data:
 d = [12, 32, 40, 15, 10]
@@ -124,7 +125,7 @@ elif args.backend == 'qpu':
 
     print("INFO: finding optimal minor embedding...")
     embedding = get_embedding_with_short_chain(J,
-                                               tries=100,
+                                               tries=5,
                                                processor=hardware_sampler.edgelist,
                                                verbose=True)
     if embedding == None:
@@ -132,16 +133,20 @@ elif args.backend == 'qpu':
         exit(0)
 
     print("INFO: creating DWave sampler...")
-    sampler = FixedEmbeddingComposite(hardware_sampler, embedding)
+    #sampler = FixedEmbeddingComposite(hardware_sampler, embedding)
+    sampler = EmbeddingComposite(hardware_sampler)  # default
 
     solver_parameters = {'num_reads': num_reads,
-                         'postprocess': 'optimization',
+                         #'postprocess':   # 'sampling',  # 'optimization',
                          'auto_scale': True,
+                         'annealing_time': 20,  # default: 20 us
                          'num_spin_reversal_transforms': 2}
 
     print("INFO: annealing (n_reads=%i) ..." % num_reads)
     if not dry_run:
         result = sampler.sample(bqm, **solver_parameters).aggregate()
+        # result = sampler.sample(
+        #    bqm, num_reads=num_reads).aggregate()  # default
 
 elif args.backend == 'sim':
     print("INFO: running on simulated annealer (neal)")
@@ -165,3 +170,7 @@ y = compact_vector(q, n)
 energy_true = get_energy(bqm, x_b)
 print("INFO: best-fit:   ", q, "::", y, ":: E =", energy_bestfit)
 print("INFO: truth value:", x_b, "::", x, ":: E =", energy_true)
+
+from sklearn.metrics import accuracy_score
+score = accuracy_score(x_b, q)
+print("INFO: accuracy:", score)
