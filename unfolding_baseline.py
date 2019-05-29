@@ -75,44 +75,54 @@ R = [[1, 1, 0, 0, 0],
 #R = [[3, 1, 0],    [1, 2, 1],     [0, 1, 3]]
 
 # pseudo-data:
-d = [12, 32, 40, 15, 10]
+#d = [12, 15, 23, 11, 6]
+
+# noise to be added to signal to create pseudo-data
+dy = [1, 2, -1, -2, 1]
 
 x = np.array(x, dtype='uint8')
 R = np.array(R, dtype='uint8')
+dy = np.array(dy, dtype='uint8')
+y = np.dot(R, x)
+d = y + dy
 #b = np.array(b, dtype='uint8')
+# = np.dot(R, x)  # closure test
 d = np.array(d, dtype='uint8')
-# closure test
-#d = np.dot(R, x)
 
 print("INFO: Truth-level x:")
 print(x)
 print("INFO: Response matrix:")
 print(R)
+print("INFO: signal:")
+print(y)
 print("INFO: pseudo-data d:")
 print(d)
 
 h_x = array_to_th1(x, "truth")
 h_R = array_to_th2(R, "response")
+h_y = array_to_th1(y, "signal")
 h_d = array_to_th1(d, "data")
-
+# h_R.Draw("text")
 loaded_RooUnfold = gSystem.Load("libRooUnfold.so")
 if not loaded_RooUnfold == 0:
     print "INFO: RooUnfold not found."
 else:
     print "INFO: RooUnfold found. Output file will contain unfolded distributions with (unregularized) Matrix Inversion and (regularized) Iterative Bayesian with Nitr=4"
 
-m_response = RooUnfoldResponse(h_R.GetName(), h_R.GetTitle())
-m_response.Setup(0, 0, h_R)
+m_response = RooUnfoldResponse(h_y, h_x, h_R)
 m_response.UseOverflow(False)
 
-unfolder_ib = RooUnfoldBayes("IB", "Iterative Baysian")
-unfolder_ib.SetIterations(5)
-unfolder_ib.SetVerbose(0)
-unfolder_ib.SetSmoothing(0)
-unfolder_ib.SetResponse(m_response)
-unfolder_ib.SetMeasured(h_d)
-h_unf_ib = unfolder_ib.Hreco()
-h_unf_ib.SetName("unf_ib")
+h_eff = h_R.ProjectionX().Clone("eff")
+h_eff.Divide(h_x)
+eff = th1_to_array(h_eff)
+print("INFO: efficiency")
+print(eff)
+
+h_acc = h_R.ProjectionX().Clone("acc")
+h_acc.Divide(h_y)
+acc = th1_to_array(h_acc)
+print("INFO: acceptance:")
+print(acc)
 
 unfolder_mi = RooUnfoldInvert("MI", "Matrix Inversion")
 unfolder_mi.SetVerbose(0)
@@ -120,13 +130,23 @@ unfolder_mi.SetResponse(m_response)
 unfolder_mi.SetMeasured(h_d)
 h_unf_mi = unfolder_mi.Hreco()
 h_unf_mi.SetName("unf_mi")
-
-
-u_ib = th1_to_array(h_unf_ib)
 u_mi = th1_to_array(h_unf_mi)
-print("INFO: Truth-level x:")
-print(x)
-print("INFO: unfolded (IB):")
-print(u_ib)
 print("INFO: unfolded (MI):")
 print(u_mi)
+
+
+unfolder_ib = RooUnfoldBayes("IB", "Iterative Baysian")
+unfolder_ib.SetIterations(4)
+unfolder_ib.SetVerbose(0)
+unfolder_ib.SetSmoothing(0)
+unfolder_ib.SetResponse(m_response)
+unfolder_ib.SetMeasured(h_d)
+h_unf_ib = unfolder_ib.Hreco()
+h_unf_ib.SetName("unf_ib")
+
+u_ib = th1_to_array(h_unf_ib)
+print("INFO: unfolded (IB):")
+print(u_ib)
+
+print("INFO: Truth-level x:")
+print(x)

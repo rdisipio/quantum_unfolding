@@ -78,3 +78,9 @@ cd -
 ln -s $HOME/development/RooUnfold/libRooUnfold.so .
 ln -s $HOME/development/RooUnfold/src/ .
 ```
+
+Then run:
+```
+./unfolding_baseline.py
+```
+

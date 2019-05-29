@@ -44,16 +44,16 @@ R = [[1, 1, 0, 0, 0],
 #x = [5, 7, 3]
 #R = [[3, 1, 0],    [1, 2, 1],     [0, 1, 3]]
 
-# pseudo-data:
-d = [12, 32, 40, 15, 10]
+# noise to be added to signal to create pseudo-data
+dy = [1, 2, -1, -2, 1]
+
 
 # convert to numpy arrays
 x = np.array(x, dtype='uint8')
 R = np.array(R, dtype='uint8')
-b = np.array(d, dtype='uint8')
-
-# closure test
-b = np.dot(R, x)
+dy = np.array(dy, dtype='uint8')
+y = np.dot(R, x)
+b = y + dy
 
 n = 4
 N = x.shape[0]
