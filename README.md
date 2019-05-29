@@ -58,3 +58,23 @@ Using e.g. a 5x5 matrix:
 ```
 ./unfolding_qubo.py -l 0 -n 10000 -b sim
 ```
+
+# Unfold with standard methods
+
+Install RooUnfold:
+
+```
+cd $HOME/development
+svn co https://svnsrv.desy.de/public/unfolding/RooUnfold/trunk RooUnfold
+cd RooUnfold
+make
+```
+
+This will create a library called ```libRooUnfold.so``` . You need to create
+links to this library and the directory with the headers:
+
+```
+cd -
+ln -s $HOME/development/RooUnfold/libRooUnfold.so .
+ln -s $HOME/development/RooUnfold/src/ .
+```
