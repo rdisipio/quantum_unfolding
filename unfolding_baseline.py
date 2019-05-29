@@ -112,18 +112,6 @@ else:
 m_response = RooUnfoldResponse(h_y, h_x, h_R)
 m_response.UseOverflow(False)
 
-h_eff = h_R.ProjectionX().Clone("eff")
-h_eff.Divide(h_x)
-eff = th1_to_array(h_eff)
-print("INFO: efficiency")
-print(eff)
-
-h_acc = h_R.ProjectionX().Clone("acc")
-h_acc.Divide(h_y)
-acc = th1_to_array(h_acc)
-print("INFO: acceptance:")
-print(acc)
-
 unfolder_mi = RooUnfoldInvert("MI", "Matrix Inversion")
 unfolder_mi.SetVerbose(0)
 unfolder_mi.SetResponse(m_response)
