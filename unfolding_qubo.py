@@ -29,33 +29,7 @@ dry_run = bool(args.dry_run)
 if dry_run:
     print("WARNING: dry run. There will be no results at the end.")
 
-# truth-level:
-x = [5, 8, 12, 6, 2]
-z = [6, 9, 13, 5, 3]
-
-# response matrix:
-R = [[1, 1, 0, 0, 0],
-     [1, 2, 1, 0, 0],
-     [0, 1, 3, 1, 0],
-     [0, 0, 1, 3, 1],
-     [0, 0, 0, 1, 2]
-     ]
-
-# smaller example
-#x = [5, 7, 3]
-#R = [[3, 1, 0],    [1, 2, 1],     [0, 1, 3]]
-
-# noise to be added to signal to create pseudo-data
-#dy = [1, 2, -1, -2, 1]
-
-# convert to numpy arrays
-x = np.array(x, dtype='uint8')
-R = np.array(R, dtype='uint8')
-z = np.array(z, dtype='uint8')
-#dy = np.array(dy, dtype='uint8')
-y = np.dot(R, x)
-b = np.dot(R,z)
-#b = y + dy
+from input_data import *
 
 n = 4
 N = x.shape[0]
@@ -69,7 +43,7 @@ D = laplacian(N)
 # convert to bits
 x_b = discretize_vector(x, n)
 z_b = discretize_vector(z, n)
-b_b = discretize_vector(b, n)
+d_b = discretize_vector(d, n)
 R_b = discretize_matrix(R, n)
 D_b = discretize_matrix(D, n)
 
@@ -78,7 +52,7 @@ print(x, x_b)
 print("INFO: Pseudo-data truth-level x:")
 print(z, z_b)
 print("INFO: pseudo-data b:")
-print(b, b_b)
+print(d, d_b)
 print("INFO: Response matrix:")
 print(R)
 print(R_b)
@@ -96,7 +70,7 @@ for j in range(n*N):
     h[idx] = 0
     for i in range(N):
         h[idx] += (R_b[i][j]*R_b[i][j] -
-                   2*R_b[i][j] * b[i] +
+                   2*R_b[i][j] * d[i] +
                    lmbd*D_b[i][j]*D_b[i][j])
     #print("h", idx, ":", h[idx])
 

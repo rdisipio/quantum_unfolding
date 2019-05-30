@@ -8,6 +8,7 @@ from ROOT import *
 import numpy as np
 
 from decimal2binary import *
+from input_data import *
 
 np.set_printoptions(precision=1, linewidth=200, suppress=True)
 
@@ -59,38 +60,7 @@ args = parser.parse_args()
 
 num_reads = int(args.nreads)
 
-# truth-level:
-x = [5, 8, 12, 6, 2]
-z = [6, 9, 13, 5, 3]
-
-# response matrix:
-R = [[1, 1, 0, 0, 0],
-     [1, 2, 1, 0, 0],
-     [0, 1, 3, 1, 0],
-     [0, 0, 1, 3, 1],
-     [0, 0, 0, 1, 2]
-     ]
-
-# smaller example
-#x = [5, 7, 3]
-#R = [[3, 1, 0],    [1, 2, 1],     [0, 1, 3]]
-
-# pseudo-data:
-#d = [12, 15, 23, 11, 6]
-
-# noise to be added to signal to create pseudo-data
-dy = [1, 2, -1, -2, 1]
-
-x = np.array(x, dtype='uint8')
-z = np.array(z, dtype='uint8')
-R = np.array(R, dtype='uint8')
-#dy = np.array(dy, dtype='uint8')
-y = np.dot(R, x)
-d = np.dot(R, z)
-#d = y + dy
-#b = np.array(b, dtype='uint8')
-# = np.dot(R, x)  # closure test
-d = np.array(d, dtype='uint8')
+#d = np.array(d, dtype='uint8')
 
 print("INFO: Signal truth-level x:")
 print(x)
@@ -144,7 +114,7 @@ print("INFO: unfolded (IB):")
 print(u_ib)
 
 unfolder_svd = RooUnfoldSvd("SVD", "SVD Tikhonov")
-unfolder_svd.SetKterm(3) # usually nbins//2
+unfolder_svd.SetKterm(3)  # usually nbins//2
 unfolder_svd.SetVerbose(1)
 unfolder_svd.SetResponse(m_response)
 unfolder_svd.SetMeasured(h_d)
