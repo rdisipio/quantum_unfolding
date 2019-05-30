@@ -5,15 +5,52 @@ x = [5, 8, 12, 6, 2]  # signal
 z = [6, 9, 13, 5, 3]  # pseudo-data
 
 # nominal response matrix:
-R = [[1, 1, 0, 0, 0],
-     [1, 2, 1, 0, 0],
-     [0, 1, 3, 1, 0],
-     [0, 0, 1, 3, 1],
-     [0, 0, 0, 1, 2]
-     ]
+R0 = [[1, 1, 0, 0, 0],
+      [1, 2, 1, 0, 0],
+      [0, 1, 3, 1, 0],
+      [0, 0, 1, 3, 1],
+      [0, 0, 0, 1, 2]
+      ]
 
 x = np.array(x, dtype='uint8')
-R = np.array(R, dtype='uint8')
+R0 = np.array(R0, dtype='uint8')
 z = np.array(z, dtype='uint8')
-y = np.dot(R, x)
-d = np.dot(R, z)
+y = np.dot(R0, x)
+d = np.dot(R0, z)
+
+# the following matrices encode
+# the effects of different systematics, i.e.
+# y1 = R1*x
+# y2 = R2*x
+
+Nbins = x.shape[0]
+Nsyst = 2
+Nparams = Nbins + Nsyst
+
+R1 = [[2, 1, 0, 0, 0],
+      [1, 2, 1, 0, 0],
+      [0, 1, 2, 1, 0],
+      [0, 0, 1, 3, 1],
+      [0, 0, 0, 1, 3]
+      ]
+y1 = np.dot(R1, x)
+
+R2 = [[1, 0, 0, 0, 0],
+      [0, 1, 1, 1, 0],
+      [0, 1, 3, 1, 0],
+      [0, 1, 1, 2, 1],
+      [0, 0, 0, 1, 2]
+      ]
+y2 = np.dot(R2, x)
+
+dy1 = y1 - y
+dy2 = y2 - y
+
+S = np.vstack((dy1, dy2)).T
+I = np.eye(Nsyst)
+O = np.zeros([Nsyst, Nbins])
+
+R = np.block([[R0, S],
+              [O, I]])
+
+s = [1, 2]
