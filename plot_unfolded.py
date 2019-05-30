@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 data = {
     'True value': [6,  9, 13,  5,  3],
-    'IB (nitr=4)': [6,  9, 12,  5,  2],
+    'D\'Agostini ItrBayes (nitr=4)': [6,  9, 12,  5,  2],
     #    'SVD (k=3)': [9, 11, 10,  4,  2],
     'QUBO (neal)': [6,  9, 13,  5,  3],
     #    'QPU (custom schedule, reads=1k)': [3, 10, 13,  5,  3],
