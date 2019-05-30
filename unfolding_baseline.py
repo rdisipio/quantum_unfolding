@@ -61,6 +61,7 @@ num_reads = int(args.nreads)
 
 # truth-level:
 x = [5, 8, 12, 6, 2]
+z = [6, 9, 13, 5, 3]
 
 # response matrix:
 R = [[1, 1, 0, 0, 0],
@@ -81,21 +82,25 @@ R = [[1, 1, 0, 0, 0],
 dy = [1, 2, -1, -2, 1]
 
 x = np.array(x, dtype='uint8')
+z = np.array(z, dtype='uint8')
 R = np.array(R, dtype='uint8')
-dy = np.array(dy, dtype='uint8')
+#dy = np.array(dy, dtype='uint8')
 y = np.dot(R, x)
-d = y + dy
+d = np.dot(R, z)
+#d = y + dy
 #b = np.array(b, dtype='uint8')
 # = np.dot(R, x)  # closure test
 d = np.array(d, dtype='uint8')
 
-print("INFO: Truth-level x:")
+print("INFO: Signal truth-level x:")
 print(x)
+print("INFO: Pseudo-data truth-level z:")
+print(z)
 print("INFO: Response matrix:")
 print(R)
-print("INFO: signal:")
+print("INFO: Signal y:")
 print(y)
-print("INFO: pseudo-data d:")
+print("INFO: Pseudo-data d:")
 print(d)
 
 h_x = array_to_th1(x, "truth")
@@ -108,6 +113,8 @@ if not loaded_RooUnfold == 0:
     print "INFO: RooUnfold not found."
 else:
     print "INFO: RooUnfold found. Output file will contain unfolded distributions with (unregularized) Matrix Inversion and (regularized) Iterative Bayesian with Nitr=4"
+
+# see: http://hepunx.rl.ac.uk/~adye/software/unfold/RooUnfold.html
 
 m_response = RooUnfoldResponse(h_y, h_x, h_R)
 m_response.UseOverflow(False)
@@ -125,7 +132,7 @@ print(u_mi)
 
 unfolder_ib = RooUnfoldBayes("IB", "Iterative Baysian")
 unfolder_ib.SetIterations(4)
-unfolder_ib.SetVerbose(0)
+unfolder_ib.SetVerbose(1)
 unfolder_ib.SetSmoothing(0)
 unfolder_ib.SetResponse(m_response)
 unfolder_ib.SetMeasured(h_d)
@@ -136,5 +143,17 @@ u_ib = th1_to_array(h_unf_ib)
 print("INFO: unfolded (IB):")
 print(u_ib)
 
-print("INFO: Truth-level x:")
-print(x)
+unfolder_svd = RooUnfoldSvd("SVD", "SVD Tikhonov")
+unfolder_svd.SetKterm(3) # usually nbins//2
+unfolder_svd.SetVerbose(1)
+unfolder_svd.SetResponse(m_response)
+unfolder_svd.SetMeasured(h_d)
+h_unf_svd = unfolder_svd.Hreco()
+h_unf_svd.SetName("unf_svd")
+
+u_svd = th1_to_array(h_unf_svd)
+print("INFO: unfolded (SVD):")
+print(u_svd)
+
+print("INFO: Truth-level z:")
+print(z)

@@ -31,6 +31,7 @@ if dry_run:
 
 # truth-level:
 x = [5, 8, 12, 6, 2]
+z = [6, 9, 13, 5, 3]
 
 # response matrix:
 R = [[1, 1, 0, 0, 0],
@@ -45,15 +46,16 @@ R = [[1, 1, 0, 0, 0],
 #R = [[3, 1, 0],    [1, 2, 1],     [0, 1, 3]]
 
 # noise to be added to signal to create pseudo-data
-dy = [1, 2, -1, -2, 1]
-
+#dy = [1, 2, -1, -2, 1]
 
 # convert to numpy arrays
 x = np.array(x, dtype='uint8')
 R = np.array(R, dtype='uint8')
-dy = np.array(dy, dtype='uint8')
+z = np.array(z, dtype='uint8')
+#dy = np.array(dy, dtype='uint8')
 y = np.dot(R, x)
-b = y + dy
+b = np.dot(R,z)
+#b = y + dy
 
 n = 4
 N = x.shape[0]
@@ -66,12 +68,15 @@ D = laplacian(N)
 
 # convert to bits
 x_b = discretize_vector(x, n)
+z_b = discretize_vector(z, n)
 b_b = discretize_vector(b, n)
 R_b = discretize_matrix(R, n)
 D_b = discretize_matrix(D, n)
 
-print("INFO: Truth-level x:")
+print("INFO: Signal truth-level x:")
 print(x, x_b)
+print("INFO: Pseudo-data truth-level x:")
+print(z, z_b)
 print("INFO: pseudo-data b:")
 print(b, b_b)
 print("INFO: Response matrix:")
@@ -169,9 +174,11 @@ best_fit = result.first
 energy_bestfit = best_fit.energy
 q = np.array(list(best_fit.sample.values()))
 y = compact_vector(q, n)
-energy_true = get_energy(bqm, x_b)
+energy_true_x = get_energy(bqm, x_b)
+energy_true_z = get_energy(bqm, z_b)
+
 print("INFO: best-fit:   ", q, "::", y, ":: E =", energy_bestfit)
-print("INFO: truth value:", x_b, "::", x, ":: E =", energy_true)
+print("INFO: truth value:", z_b, "::", z, ":: E =", energy_true_z)
 
 from sklearn.metrics import accuracy_score
 score = accuracy_score(x_b, q)
