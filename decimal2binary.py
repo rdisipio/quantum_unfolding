@@ -128,11 +128,12 @@ def discretize_matrix(A, n=4):
     # Ax = Dq
 
     N = A.shape[0]
+    M = A.shape[1]
 
-    D = np.zeros([N, N*n])
+    D = np.zeros([N, M*n])
 
-    for i in range(N):
-        for j in range(n):
+    for i in range(M):
+        for j in range(n): #-->bits
             k = (i)*n+j
             D[:, k] = np.power(2, n-j-1) * A[:, i]
     return D

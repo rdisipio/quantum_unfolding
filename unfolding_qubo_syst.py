@@ -41,11 +41,12 @@ lmbd = np.uint8(args.lmbd)  # regularization strength
 D = laplacian(Nbins)
 
 # in case Nsyst>0, extend vectors and laplacian
-D = np.block([[D, np.zeros([Nbins, Nsyst])],
-              [np.zeros([Nsyst, Nbins]), np.zeros([Nsyst, Nsyst])]])
+D = np.block([[D, np.zeros([Nbins, Nsyst])]])  # ,
+#              [np.zeros([Nsyst, Nbins]), np.zeros([Nsyst, Nsyst])]])
 x = np.hstack((x, np.zeros(Nsyst)))
 z = np.hstack((z, s))
 d = np.dot(R, z)
+# y = np.dot(R, x)
 
 # convert to bits
 x_b = discretize_vector(x, n)
@@ -58,11 +59,11 @@ print("INFO: Signal truth-level x:")
 print(x, x_b)
 print("INFO: Pseudo-data truth-level z:")
 print(z, z_b)
-print("INFO: pseudo-data d:")
-print(d, d_b)
 print("INFO: Response matrix R (incl syst):")
 print(R)
 print(R_b)
+print("INFO: pseudo-data d = R.z:")
+print(d, d_b)
 print("INFO: Laplacian operator:")
 print(D)
 print(D_b)
@@ -75,7 +76,7 @@ h = {}
 for j in range(n*Nparams):
     idx = (j)
     h[idx] = 0
-    for i in range(Nparams):
+    for i in range(Nbins):
         h[idx] += (R_b[i][j]*R_b[i][j] -
                    2*R_b[i][j] * d[i] +
                    lmbd*D_b[i][j]*D_b[i][j])
@@ -87,7 +88,7 @@ for j in range(n*Nparams):
     for k in range(j+1, n*Nparams):
         idx = (j, k)
         J[idx] = 0
-        for i in range(Nparams):
+        for i in range(Nbins):
             J[idx] += 2*(R_b[i][j]*R_b[i][k] + lmbd*D_b[i][j]*D_b[i][k])
         # print("J", idx, ":", J[idx])
 
