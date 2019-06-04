@@ -38,7 +38,7 @@ colors = ['black', 'red', 'gold', 'seagreen', 'blue']
 markers = ['o', 'v', '^', 'x', 'D']
 bar_width = 0.1
 
-fig, ax = plt.subplots(tight_layout=True, figsize=(10, 4))
+fig, ax = plt.subplots(tight_layout=True, figsize=(10, 6))
 
 for i in range(5):
     plt.errorbar(x=ibin+0.05*i, y=data[i],
@@ -50,4 +50,4 @@ plt.legend()
 plt.ylabel("Unfolded")
 plt.xlabel("Bin")
 plt.show()
-plt.savefig("unfolded.png")
+fig.savefig("unfolded.png")
