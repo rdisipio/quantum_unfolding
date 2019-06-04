@@ -27,12 +27,12 @@ unc = [
     [0., 0., 0., 0., 0],
     [0., 0., 0., 0., 0],
     [0.5, 0.5, 0.5, 0.5, 0.5],
-    [0.5, 0.5, 0.5, 0.5, 0.5],
+    [1.0, 1.0, 1.0, 1.0, 1.0],
 ]
 
 n_methods = len(data)
 ibin = np.arange(n_methods)
-colors = ['black', 'red', 'blue', 'seagreen', 'gold']
+colors = ['black', 'red', 'gold', 'seagreen', 'blue']
 #          'gold', 'cyan', 'violet', 'navyblue']
 #colors = ['black', 'salmon', 'royalblue', 'lightgreen', 'gold']
 markers = ['o', 'v', '^', 'x', 'D']
@@ -50,3 +50,4 @@ plt.legend()
 plt.ylabel("Unfolded")
 plt.xlabel("Bin")
 plt.show()
+plt.savefig("unfolded.png")
