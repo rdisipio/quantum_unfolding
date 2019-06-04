@@ -35,19 +35,28 @@ ibin = np.arange(n_methods)
 colors = ['black', 'red', 'gold', 'seagreen', 'blue']
 #          'gold', 'cyan', 'violet', 'navyblue']
 #colors = ['black', 'salmon', 'royalblue', 'lightgreen', 'gold']
-markers = ['o', 'v', '^', 'x', 'D']
+markers = ['o', 'v', '^', 'D', 'o']
 bar_width = 0.1
 
 fig, ax = plt.subplots(tight_layout=True, figsize=(10, 6))
 
-for i in range(5):
-    plt.errorbar(x=ibin+0.05*i, y=data[i],
+plt.step(ibin, data[0], where='mid',
+         label=labels[0], color='black', linestyle='dashed')
+for i in range(1, 5):
+    plt.errorbar(x=ibin+0.05*i-0.1, y=data[i],
                  yerr=unc[i],
                  color=colors[i],
                  fmt=markers[i],
+                 ms=10,
                  label=labels[i])
 plt.legend()
 plt.ylabel("Unfolded")
 plt.xlabel("Bin")
+ax.xaxis.label.set_fontsize(12)
+ax.yaxis.label.set_fontsize(12)
+# ax.get_xticklabels().set_fontsize(12)
+# ax.get_yticklabels().set_fontsize(12)
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
 plt.show()
 fig.savefig("unfolded.png")
