@@ -31,7 +31,8 @@ unc = [
 ]
 
 n_methods = len(data)
-ibin = np.arange(n_methods)
+#ibin = np.arange(n_methods)
+ibin = np.array([1, 2, 3, 4, 5])
 colors = ['black', 'red', 'gold', 'seagreen', 'blue']
 #          'gold', 'cyan', 'violet', 'navyblue']
 #colors = ['black', 'salmon', 'royalblue', 'lightgreen', 'gold']
@@ -49,6 +50,7 @@ for i in range(1, 5):
                  fmt=markers[i],
                  ms=10,
                  label=labels[i])
+plt.xlim(0.5, 5.5)
 plt.legend()
 plt.ylabel("Unfolded")
 plt.xlabel("Bin")
