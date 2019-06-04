@@ -7,30 +7,45 @@ import matplotlib.pyplot as plt
 
 # sns.set(color_codes=True)
 
-data = {
-    'True value': [6,  9, 13,  5,  3],
-    'D\'Agostini ItrBayes (nitr=4)': [6,  9, 12,  5,  2],
-    #    'SVD (k=3)': [9, 11, 10,  4,  2],
-    'QUBO (neal)': [6,  9, 13,  5,  3],
-    #    'QPU (custom schedule, reads=1k)': [3, 10, 13,  5,  3],
-    'QPU (custom schedule, reads=5k)': [9,  7, 14,  5,  2],
-    'QPU (default schedule, reads=10k)': [1, 13, 12,  5,  3],
-}
+labels = [
+    'True value',
+    'D\'Agostini ItrBayes (nitr=4)',
+    'QUBO (neal)',
+    'QPU (custom schedule, reads=5k)',
+    'QPU (default schedule, reads=10k)'
+]
+
+data = [
+    [6,  9, 13,  5,  3],  # true
+    [6,  9, 12,  5,  2],
+    [6,  9, 13,  5,  3],
+    [9,  7, 14,  5,  2],
+    [1, 13, 12,  5,  3],
+]
+unc = [
+    [0., 0., 0., 0., 0],
+    [0., 0., 0., 0., 0],
+    [0., 0., 0., 0., 0],
+    [0.5, 0.5, 0.5, 0.5, 0.5],
+    [0.5, 0.5, 0.5, 0.5, 0.5],
+]
 
 n_methods = len(data)
 ibin = np.arange(n_methods)
-colors = ['black', 'red', 'blue', 'seagreen',
-          'gold', 'cyan', 'violet', 'navyblue']
+colors = ['black', 'red', 'blue', 'seagreen', 'gold']
+#          'gold', 'cyan', 'violet', 'navyblue']
+#colors = ['black', 'salmon', 'royalblue', 'lightgreen', 'gold']
+markers = ['o', 'v', '^', 'x', 'D']
 bar_width = 0.1
 
 fig, ax = plt.subplots(tight_layout=True, figsize=(10, 4))
 
-for i in range(len(ibin)):
-    plt.bar(ibin+(3-i)*bar_width, list(data.values())[i],
-            color=colors[i],
-            width=bar_width,
-            label=list(data.keys())[i],
-            align='center')
+for i in range(5):
+    plt.errorbar(x=ibin+0.05*i, y=data[i],
+                 yerr=unc[i],
+                 color=colors[i],
+                 fmt=markers[i],
+                 label=labels[i])
 plt.legend()
 plt.ylabel("Unfolded")
 plt.xlabel("Bin")
