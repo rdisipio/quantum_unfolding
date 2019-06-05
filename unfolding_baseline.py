@@ -31,8 +31,11 @@ def array_to_th1(a, hname="h", htitle=";X;Entries"):
 def th1_to_array(h):
     n = h.GetNbinsX()
     a = [h.GetBinContent(i+1) for i in range(n)]
-    a = np.array(a, dtype='uint8')
-    return a
+    u = [h.GetBinError(i+1) for i in range(n)]
+#    a = np.array(a, dtype='uint8')
+    a = np.array(a)
+    u = np.array(u)
+    return a, u
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -67,14 +70,14 @@ print(x)
 print("INFO: Pseudo-data truth-level z:")
 print(z)
 print("INFO: Response matrix:")
-print(R)
+print(R0)
 print("INFO: Signal y:")
 print(y)
 print("INFO: Pseudo-data d:")
 print(d)
 
 h_x = array_to_th1(x, "truth")
-h_R = array_to_th2(R, "response")
+h_R = array_to_th2(R0, "response")
 h_y = array_to_th1(y, "signal")
 h_d = array_to_th1(d, "data")
 # h_R.Draw("text")
@@ -95,10 +98,10 @@ unfolder_mi.SetResponse(m_response)
 unfolder_mi.SetMeasured(h_d)
 h_unf_mi = unfolder_mi.Hreco()
 h_unf_mi.SetName("unf_mi")
-u_mi = th1_to_array(h_unf_mi)
+u_mi, e_mi = th1_to_array(h_unf_mi)
 print("INFO: unfolded (MI):")
 print(u_mi)
-
+print(e_mi)
 
 unfolder_ib = RooUnfoldBayes("IB", "Iterative Baysian")
 unfolder_ib.SetIterations(4)
@@ -109,9 +112,10 @@ unfolder_ib.SetMeasured(h_d)
 h_unf_ib = unfolder_ib.Hreco()
 h_unf_ib.SetName("unf_ib")
 
-u_ib = th1_to_array(h_unf_ib)
+u_ib, e_ib = th1_to_array(h_unf_ib)
 print("INFO: unfolded (IB):")
 print(u_ib)
+print(e_ib)
 
 unfolder_svd = RooUnfoldSvd("SVD", "SVD Tikhonov")
 unfolder_svd.SetKterm(3)  # usually nbins//2
@@ -121,9 +125,10 @@ unfolder_svd.SetMeasured(h_d)
 h_unf_svd = unfolder_svd.Hreco()
 h_unf_svd.SetName("unf_svd")
 
-u_svd = th1_to_array(h_unf_svd)
+u_svd, e_svd = th1_to_array(h_unf_svd)
 print("INFO: unfolded (SVD):")
 print(u_svd)
+print(e_svd)
 
 print("INFO: Truth-level z:")
 print(z)
