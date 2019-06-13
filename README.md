@@ -84,3 +84,23 @@ Then run:
 ./unfolding_baseline.py
 ```
 
+With systematics:
+```
+./unfolding_baseline_syst.py # this gives you D'Agostini etc.
+
+# Neal
+./unfolding_qubo_syst.py -n 5000 -b sim -l 0.0
+./unfolding_qubo_syst.py -n 5000 -b sim -l 0.5
+./unfolding_qubo_syst.py -n 5000 -b sim -l 1.0
+
+# QPU
+./unfolding_qubo_syst.py -n 5000 -b qpu -l 0.0
+./unfolding_qubo_syst.py -n 5000 -b qpu -l 0.5  
+./unfolding_qubo_syst.py -n 5000 -b qpu -l 1.0
+```
+
+Make plots:
+```
+./plot_unfolded.py # unfolded only nominal, no systematics
+./plot_unfolded_syst.py # unfolded w/ systematics
+```
