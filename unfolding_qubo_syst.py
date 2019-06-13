@@ -37,7 +37,8 @@ print("INFO: N syst:", Nsyst)
 print("INFO: Nparams = Nbins + Nsyst:", Nparams)
 print("INFO: n-bits encoding:", n)
 
-lmbd = np.uint8(args.lmbd)  # regularization strength
+#lmbd = np.uint8(args.lmbd)  # regularization strength
+lmbd = float(args.lmbd)
 D = laplacian(Nbins)
 
 # in case Nsyst>0, extend vectors and laplacian

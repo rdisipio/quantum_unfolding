@@ -133,6 +133,7 @@ unf_data_syst_unc = [
     [0, 0, 0, 0, 0, 0, 0],  # QPU reg
 ]
 
+# l=0
 qpu_reads_syst_unreg = np.array([
     [2, 13, 11,  5,  4,  1,  2],
     [7,  4, 15,  5,  3,  1,  1],
@@ -146,6 +147,7 @@ qpu_reads_syst_unreg = np.array([
     [11,  3, 13,  3,  7,  0,  1],
 ])
 
+# l=1.0
 qpu_reads_syst_reg = np.array([
     [2, 4, 8, 9, 3, 0, 0],
     [2, 4, 8, 7, 4, 0, 0],
@@ -157,6 +159,13 @@ qpu_reads_syst_reg = np.array([
     [5, 9, 9, 6, 1, 0, 1],
     [1, 6, 9, 7, 5, 0, 0],
     [4, 7, 9, 9, 5, 0, 1],
+])
+
+# l=0.5
+qpu_reads_syst_reg = np.array([
+    [5, 11,  9,  6,  4,  0,  2],
+    [6, 12, 12,  6,  1,  1,  3],
+    [5, 10,  8,  6,  3,  0,  1],
 ])
 
 unf_data_syst[3] = np.mean(qpu_reads_syst_unreg, axis=0)
