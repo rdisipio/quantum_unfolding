@@ -99,6 +99,18 @@ With systematics:
 ./unfolding_qubo_syst.py -n 5000 -b qpu -l 1.0
 ```
 
+To speed up:
+```
+for i in $(seq 20) ; do ./unfolding_qubo.py -b qpu -l 0 | tail -n 1 ; done
+for i in $(seq 20) ; do ./unfolding_qubo.py -b qpu -l 1 | tail -n 1 ; done 
+```
+
+or equivalently:
+```
+./unfold_qubo.sh -b qpu -n 20 -l 0
+./unfold_qubo.sh -b qpu -n 20 -l 1
+```
+
 Make plots:
 ```
 ./plot_unfolded.py # unfolded only nominal, no systematics

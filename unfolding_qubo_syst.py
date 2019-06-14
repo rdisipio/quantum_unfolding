@@ -20,7 +20,7 @@ np.set_printoptions(precision=1, linewidth=200, suppress=True)
 
 parser = argparse.ArgumentParser("Quantum unfolding")
 parser.add_argument('-l', '--lmbd', default=0.00)
-parser.add_argument('-n', '--nreads', default=1000)
+parser.add_argument('-n', '--nreads', default=5000)
 parser.add_argument('-b', '--backend', default='sim')  # [cpu, qpu, sim]
 parser.add_argument('-d', '--dry-run', action='store_true', default=False)
 args = parser.parse_args()
@@ -169,5 +169,5 @@ print("INFO: accuracy:", score)
 
 print("INFO: add the following line to the list of unfolded results")
 print(list(y), end='')
-print(',')
+print(', # E =', energy_bestfit)
 

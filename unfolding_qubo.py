@@ -18,8 +18,8 @@ import neal
 np.set_printoptions(precision=1, linewidth=200, suppress=True)
 
 parser = argparse.ArgumentParser("Quantum unfolding")
-parser.add_argument('-l', '--lmbd', default=0.00)
-parser.add_argument('-n', '--nreads', default=1000)
+parser.add_argument('-l', '--lmbd', default=0)
+parser.add_argument('-n', '--nreads', default=5000)
 parser.add_argument('-b', '--backend', default='sim')  # [cpu, qpu, sim]
 parser.add_argument('-d', '--dry-run', action='store_true', default=False)
 args = parser.parse_args()
@@ -37,7 +37,8 @@ N = x.shape[0]
 print("INFO: N bins:", N)
 print("INFO: n-bits encoding:", n)
 
-lmbd = np.uint8(args.lmbd)  # regularization strength
+lmbd = int(args.lmbd)
+lmbd = np.uint8(lmbd)  # regularization strength
 D = laplacian(N)
 
 # convert to bits
@@ -160,4 +161,4 @@ print("INFO: accuracy:", score)
 
 print("INFO: add the following line to the list of unfolded results")
 print(list(y), end='')
-print(',')
+print(', # E =', energy_bestfit)

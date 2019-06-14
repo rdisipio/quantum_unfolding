@@ -15,5 +15,5 @@ done
 
 for i in $(seq ${nruns})
 do
-   ./unfolding_qubo.py -l ${reg} -b ${backend} | tail -n 1
+   ./unfolding_qubo_syst.py -l ${reg} -b ${backend} | tail -n 1
 done
