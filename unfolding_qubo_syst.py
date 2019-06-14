@@ -166,3 +166,8 @@ print("INFO: truth value:", z_b, "::", z, ":: E =", energy_true_z)
 from sklearn.metrics import accuracy_score
 score = accuracy_score(x_b, q)
 print("INFO: accuracy:", score)
+
+print("INFO: add the following line to the list of unfolded results")
+print(list(y), end='')
+print(',')
+
