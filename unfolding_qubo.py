@@ -152,7 +152,13 @@ y = compact_vector(q, n)
 energy_true_x = get_energy(bqm, x_b)
 energy_true_z = get_energy(bqm, z_b)
 
-print("INFO: best-fit:   ", q, "::", y, ":: E =", energy_bestfit)
+from scipy import stats
+dof = N - 1
+chi2, p = stats.chisquare(y, z, dof)
+chi2dof = chi2 / float(dof)
+
+print("INFO: best-fit:   ", q, "::", y, ":: E =",
+      energy_bestfit, ":: chi2/dof = %.2f" % chi2dof)
 print("INFO: truth value:", z_b, "::", z, ":: E =", energy_true_z)
 
 from sklearn.metrics import accuracy_score
@@ -161,4 +167,4 @@ print("INFO: accuracy:", score)
 
 print("INFO: add the following line to the list of unfolded results")
 print(list(y), end='')
-print(', # E =', energy_bestfit)
+print(', # E =', energy_bestfit, "chi2/dof = %.2f" % chi2dof)

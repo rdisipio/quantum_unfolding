@@ -6,6 +6,7 @@ import argparse
 
 from ROOT import *
 import numpy as np
+import scipy.stats
 
 from decimal2binary import *
 from input_data import *
@@ -76,6 +77,7 @@ print(y)
 print("INFO: Pseudo-data d:")
 print(d)
 
+h_z = array_to_th1(z, "data_truth")
 h_x = array_to_th1(x, "truth")
 h_R = array_to_th2(R0, "response")
 h_y = array_to_th1(y, "signal")
@@ -85,12 +87,15 @@ loaded_RooUnfold = gSystem.Load("libRooUnfold.so")
 if not loaded_RooUnfold == 0:
     print "INFO: RooUnfold not found."
 else:
-    print "INFO: RooUnfold found. Output file will contain unfolded distributions with (unregularized) Matrix Inversion and (regularized) Iterative Bayesian with Nitr=4"
+    print "INFO: RooUnfold found."
 
 # see: http://hepunx.rl.ac.uk/~adye/software/unfold/RooUnfold.html
 
 m_response = RooUnfoldResponse(h_y, h_x, h_R)
 m_response.UseOverflow(False)
+
+N = h_x.GetNbinsX()
+dof = N-1
 
 unfolder_mi = RooUnfoldInvert("MI", "Matrix Inversion")
 unfolder_mi.SetVerbose(0)
@@ -102,10 +107,12 @@ u_mi, e_mi = th1_to_array(h_unf_mi)
 print("INFO: unfolded (MI):")
 print(u_mi)
 print(e_mi)
+chi2_mi, p_mi = scipy.stats.chisquare(u_mi, z)
+print("chi2 / dof = %f / %i = %.2f" % (chi2_mi, dof, chi2_mi/float(dof)))
 
 unfolder_ib = RooUnfoldBayes("IB", "Iterative Baysian")
 unfolder_ib.SetIterations(4)
-unfolder_ib.SetVerbose(1)
+unfolder_ib.SetVerbose(0)
 unfolder_ib.SetSmoothing(0)
 unfolder_ib.SetResponse(m_response)
 unfolder_ib.SetMeasured(h_d)
@@ -116,10 +123,13 @@ u_ib, e_ib = th1_to_array(h_unf_ib)
 print("INFO: unfolded (IB):")
 print(u_ib)
 print(e_ib)
+chi2_ib, p_ib = scipy.stats.chisquare(u_ib, z)
+#chi2_ib = h_unf_ib.Chi2Test(h_z, "WU CHI2 P")
+print("chi2 / dof = %f / %i = %.2f" % (chi2_ib, dof, chi2_ib/float(dof)))
 
 unfolder_svd = RooUnfoldSvd("SVD", "SVD Tikhonov")
 unfolder_svd.SetKterm(3)  # usually nbins//2
-unfolder_svd.SetVerbose(1)
+unfolder_svd.SetVerbose(0)
 unfolder_svd.SetResponse(m_response)
 unfolder_svd.SetMeasured(h_d)
 h_unf_svd = unfolder_svd.Hreco()
@@ -129,6 +139,8 @@ u_svd, e_svd = th1_to_array(h_unf_svd)
 print("INFO: unfolded (SVD):")
 print(u_svd)
 print(e_svd)
+chi2_svd, p_svd = scipy.stats.chisquare(u_svd, z)
+print("chi2 / dof = %f / %i = %.2f" % (chi2_svd, dof, chi2_svd/float(dof)))
 
 print("INFO: Truth-level z:")
 print(z)
