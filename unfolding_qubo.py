@@ -71,9 +71,11 @@ for j in range(n*N):
     idx = (j)
     h[idx] = 0
     for i in range(N):
-        h[idx] += (R_b[i][j]*R_b[i][j] -
-                   2*R_b[i][j] * d[i] +
-                   lmbd*D_b[i][j]*D_b[i][j])
+        h[idx] += (
+            R_b[i][j]*R_b[i][j] -
+            2*R_b[i][j] * d[i] +
+            lmbd*D_b[i][j]*D_b[i][j]
+        )
         Q[j][j] = h[idx]
 
 # quadratic constraints
@@ -129,7 +131,7 @@ elif args.backend == 'qpu':
                          #'postprocess':  'optimization',
                          'auto_scale': True,
                          #'annealing_time': 200,  # default: 20 us
-                         #'anneal_schedule': anneal_sched_custom(id=2),
+                         #'anneal_schedule': anneal_sched_custom(id=3),
                          'num_spin_reversal_transforms': 2,  # default: 2
                          }
 

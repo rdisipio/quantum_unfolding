@@ -27,6 +27,12 @@ def anneal_sched_custom(id=0):
                 (280, 0.50),
                 (300.0, 1.0)
                 )
+    elif id == 3:
+        return (
+               (0.0,0.0),
+               (10.0,0.5),
+               (12.0,1.0)
+               ) # with quench
     else:
         return None
 
