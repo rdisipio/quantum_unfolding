@@ -11,7 +11,6 @@ from decimal2binary import *
 
 # DWave stuff
 import dimod
-import hybrid
 from dwave.system import EmbeddingComposite, FixedEmbeddingComposite, TilingComposite, DWaveSampler
 from dwave_tools import get_embedding_with_short_chain, get_energy, anneal_sched_custom
 import neal
@@ -21,7 +20,7 @@ np.set_printoptions(precision=1, linewidth=200, suppress=True)
 parser = argparse.ArgumentParser("Quantum unfolding")
 parser.add_argument('-l', '--lmbd', default=0)
 parser.add_argument('-n', '--nreads', default=5000)
-parser.add_argument('-b', '--backend', default='sim')  # [cpu, qpu, sim]
+parser.add_argument('-b', '--backend', default='sim')  # [sim, qpu, hyb]
 parser.add_argument('-d', '--dry-run', action='store_true', default=False)
 args = parser.parse_args()
 
@@ -107,7 +106,7 @@ if args.backend == 'cpu':
     if not dry_run:
         result = dimod.ExactSolver().sample(bqm)
 
-elif args.backend == 'qpu':
+elif args.backend in [ 'qpu', 'hyb' ]:
     print("INFO: running on QPU")
 
     hardware_sampler = DWaveSampler()
@@ -138,7 +137,10 @@ elif args.backend == 'qpu':
 
     print("INFO: annealing (n_reads=%i) ..." % num_reads)
     if not dry_run:
-        #results = sampler.sample(bqm, **solver_parameters).aggregate()
+      if args.backend == 'qpu':
+        results = sampler.sample(bqm, **solver_parameters).aggregate()
+      elif args.backend == 'hyb':
+        import hybrid
 
         iteration = hybrid.RacingBranches(
             hybrid.Identity(),
@@ -151,7 +153,6 @@ elif args.backend == 'qpu':
 
         init_state = hybrid.State.from_problem(bqm)
         results = workflow.run(init_state).result().samples
-        #print("Solution: sample={.samples.first}".format(results))
 
 elif args.backend == 'sim':
     print("INFO: running on simulated annealer (neal)")
