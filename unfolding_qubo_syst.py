@@ -12,6 +12,7 @@ from input_data import *
 
 # DWave stuff
 import dimod
+import hybrid
 from dwave.system import EmbeddingComposite, FixedEmbeddingComposite, DWaveSampler
 from dwave_tools import get_embedding_with_short_chain, get_energy, anneal_sched_custom
 import neal
@@ -72,6 +73,7 @@ print(D_b)
 print("INFO: regularization strength:", lmbd)
 
 # Create QUBO operator
+Q = np.zeros([n*Nparams, n*Nparams])
 
 # linear constraints
 h = {}
@@ -82,7 +84,7 @@ for j in range(n*Nparams):
         h[idx] += (R_b[i][j]*R_b[i][j] -
                    2*R_b[i][j] * d[i] +
                    lmbd*D_b[i][j]*D_b[i][j])
-    #print("h", idx, ":", h[idx])
+    Q[j][j] = h[idx]
 
 # quadratic constraints
 J = {}
@@ -92,13 +94,18 @@ for j in range(n*Nparams):
         J[idx] = 0
         for i in range(Nbins):
             J[idx] += 2*(R_b[i][j]*R_b[i][k] + lmbd*D_b[i][j]*D_b[i][k])
-        # print("J", idx, ":", J[idx])
+        Q[j][k] = J[idx]
+print("INFO: QUBO coefficients:")
+print(Q)
 
 # QUBO
-bqm = dimod.BinaryQuadraticModel(linear=h,
-                                 quadratic=J,
-                                 offset=0.0,
-                                 vartype=dimod.BINARY)
+# bqm = dimod.BinaryQuadraticModel(linear=h,
+#                                 quadratic=J,
+#                                 offset=0.0,
+#                                 vartype=dimod.BINARY)
+bqm = dimod.BinaryQuadraticModel.from_numpy_matrix(Q)
+
+
 print("INFO: solving the QUBO model...")
 
 result = None
@@ -135,9 +142,18 @@ elif args.backend == 'qpu':
 
     print("INFO: annealing (n_reads=%i) ..." % num_reads)
     if not dry_run:
-        result = sampler.sample(bqm, **solver_parameters).aggregate()
-        # result = sampler.sample(
-        #    bqm, num_reads=num_reads).aggregate()  # default
+        #results = sampler.sample(bqm, **solver_parameters).aggregate()
+        iteration = hybrid.RacingBranches(
+            hybrid.Identity(),
+            hybrid.InterruptableTabuSampler(),
+            hybrid.EnergyImpactDecomposer(size=2)
+            | hybrid.QPUSubproblemAutoEmbeddingSampler()
+            | hybrid.SplatComposer()
+        ) | hybrid.ArgMin()
+        workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=3)
+
+        init_state = hybrid.State.from_problem(bqm)
+        results = workflow.run(init_state).result().samples
 
 elif args.backend == 'sim':
     print("INFO: running on simulated annealer (neal)")
@@ -146,7 +162,7 @@ elif args.backend == 'sim':
 
     print("INFO: annealing (n_reads=%i) ..." % num_reads)
     if not dry_run:
-        result = sampler.sample(bqm, num_reads=num_reads).aggregate()
+        results = sampler.sample(bqm, num_reads=num_reads).aggregate()
 
 print("INFO: ...done.")
 
@@ -154,7 +170,7 @@ if dry_run:
     print("INFO: dry runn.")
     exit(0)
 
-best_fit = result.first
+best_fit = results.first
 energy_bestfit = best_fit.energy
 q = np.array(list(best_fit.sample.values()))
 y = compact_vector(q, n)
