@@ -63,10 +63,10 @@ I = np.eye(Nsyst)
 O = np.zeros([Nsyst, Nbins])
 
 # square matrix
-R = np.block([[R0, S],
-              [O, I]])
+# R = np.block([[R0, S],
+#              [O, I]])
 
 # rectangular matrix
-#R = np.block([[R0, S]])
+R = np.block([[R0, S]])
 
 s = [1, 2]
