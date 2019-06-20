@@ -41,7 +41,7 @@ def th1_to_array(h):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-def array_to_th2(a, hname="res", htitle=";reco;truth"):
+def array_to_th2(a, hname="res", htitle=";reco;truth", u=0.10):
     n_bins_x = a.shape[0]
     n_bins_y = a.shape[1]
 
@@ -51,6 +51,7 @@ def array_to_th2(a, hname="res", htitle=";reco;truth"):
     for i in range(n_bins_x):
         for j in range(n_bins_y):
             h.SetBinContent(i+1, j+1, a[i][j])
+            h.SetBinError(i+1, j+1, u*a[i][j])
 
     return h
 
@@ -79,7 +80,7 @@ print(d)
 
 h_z = array_to_th1(z, "data_truth")
 h_x = array_to_th1(x, "truth")
-h_R = array_to_th2(R0, "response")
+h_R = array_to_th2(R0.T, "response")
 h_y = array_to_th1(y, "signal")
 h_d = array_to_th1(d, "data")
 # h_R.Draw("text")
@@ -101,12 +102,22 @@ unfolder_mi = RooUnfoldInvert("MI", "Matrix Inversion")
 unfolder_mi.SetVerbose(0)
 unfolder_mi.SetResponse(m_response)
 unfolder_mi.SetMeasured(h_d)
-h_unf_mi = unfolder_mi.Hreco()
+h_unf_mi = unfolder_mi.Hreco()  # RooUnfold.kCovToy)
 h_unf_mi.SetName("unf_mi")
 u_mi, e_mi = th1_to_array(h_unf_mi)
 print("INFO: unfolded (MI):")
 print(u_mi)
 print(e_mi)
+chi2_mi, p_mi = scipy.stats.chisquare(u_mi, z)
+print("chi2 / dof = %f / %i = %.2f" % (chi2_mi, dof, chi2_mi/float(dof)))
+
+Rinv = np.linalg.pinv(R0)
+print("INFO: R^-1:")
+print(Rinv)
+u_mi = np.dot(Rinv, d)
+print("INFO: R^-1 d:")
+print("u:", u_mi)
+print("z:", z)
 chi2_mi, p_mi = scipy.stats.chisquare(u_mi, z)
 print("chi2 / dof = %f / %i = %.2f" % (chi2_mi, dof, chi2_mi/float(dof)))
 
@@ -116,7 +127,7 @@ unfolder_ib.SetVerbose(0)
 unfolder_ib.SetSmoothing(0)
 unfolder_ib.SetResponse(m_response)
 unfolder_ib.SetMeasured(h_d)
-h_unf_ib = unfolder_ib.Hreco()
+h_unf_ib = unfolder_ib.Hreco()  # RooUnfold.kCovToy)
 h_unf_ib.SetName("unf_ib")
 
 u_ib, e_ib = th1_to_array(h_unf_ib)
@@ -124,7 +135,6 @@ print("INFO: unfolded (IB):")
 print(u_ib)
 print(e_ib)
 chi2_ib, p_ib = scipy.stats.chisquare(u_ib, z)
-#chi2_ib = h_unf_ib.Chi2Test(h_z, "WU CHI2 P")
 print("chi2 / dof = %f / %i = %.2f" % (chi2_ib, dof, chi2_ib/float(dof)))
 
 unfolder_svd = RooUnfoldSvd("SVD", "SVD Tikhonov")
@@ -132,7 +142,7 @@ unfolder_svd.SetKterm(3)  # usually nbins//2
 unfolder_svd.SetVerbose(0)
 unfolder_svd.SetResponse(m_response)
 unfolder_svd.SetMeasured(h_d)
-h_unf_svd = unfolder_svd.Hreco()
+h_unf_svd = unfolder_svd.Hreco()  # RooUnfold.kCovToy)
 h_unf_svd.SetName("unf_svd")
 
 u_svd, e_svd = th1_to_array(h_unf_svd)

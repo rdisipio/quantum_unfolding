@@ -2,19 +2,27 @@ import numpy as np
 
 # truth-level:
 x = [5, 8, 12, 6, 2]  # signal
-z = [6, 9, 13, 5, 3]  # pseudo-data
+z = [6,  9, 13,  5, 3]  # pseudo-data
+
+#x = [1, 3, 2, 2, 1]
+#z = [1, 2, 3, 2, 1]
+
+#x = [ 2, 4, 3 ]
+#z = [ 2, 3, 2 ]
 
 # nominal response matrix:
 R0 = [[1, 1, 0, 0, 0],
       [1, 2, 1, 0, 0],
       [0, 1, 3, 1, 0],
       [0, 0, 1, 3, 1],
-      [0, 0, 0, 1, 2]
+      [0, 0, 0, 1, 2],
       ]
 
-x = np.array(x, dtype='uint8')
-R0 = np.array(R0, dtype='uint8')
-z = np.array(z, dtype='uint8')
+#R0 = np.diag([2., 2., 2., 2.])
+
+x = np.array(x)  # , dtype='uint8')
+R0 = np.array(R0)  # , dtype='uint8')
+z = np.array(z)  # , dtype='uint8')
 y = np.dot(R0, x)
 d = np.dot(R0, z)
 
@@ -54,8 +62,11 @@ S = np.vstack((dy1, dy2)).T
 I = np.eye(Nsyst)
 O = np.zeros([Nsyst, Nbins])
 
+# square matrix
 R = np.block([[R0, S],
               [O, I]])
+
+# rectangular matrix
 #R = np.block([[R0, S]])
 
 s = [1, 2]

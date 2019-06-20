@@ -31,13 +31,14 @@ if dry_run:
     print("WARNING: dry run. There will be no results at the end.")
 
 n = 4
+N = x.shape[0]
 
 print("INFO: N bins:", Nbins)
 print("INFO: N syst:", Nsyst)
 print("INFO: Nparams = Nbins + Nsyst:", Nparams)
 print("INFO: n-bits encoding:", n)
 
-#lmbd = np.uint8(args.lmbd)  # regularization strength
+# lmbd = np.uint8(args.lmbd)  # regularization strength
 lmbd = float(args.lmbd)
 D = laplacian(Nbins)
 
@@ -81,7 +82,7 @@ for j in range(n*Nparams):
         h[idx] += (R_b[i][j]*R_b[i][j] -
                    2*R_b[i][j] * d[i] +
                    lmbd*D_b[i][j]*D_b[i][j])
-    # print("h", idx, ":", h[idx])
+    #print("h", idx, ":", h[idx])
 
 # quadratic constraints
 J = {}
@@ -121,15 +122,15 @@ elif args.backend == 'qpu':
         exit(0)
 
     print("INFO: creating DWave sampler...")
-    # sampler = FixedEmbeddingComposite(hardware_sampler, embedding)
-    sampler = EmbeddingComposite(hardware_sampler)  # default
+    sampler = FixedEmbeddingComposite(hardware_sampler, embedding)
+    # sampler = EmbeddingComposite(hardware_sampler)  # default
 
     solver_parameters = {'num_reads': num_reads,
                          #'postprocess':   'sampling',
                          #'postprocess':  'optimization',
                          'auto_scale': True,
                          #'annealing_time': 20,  # default: 20 us
-                         'anneal_schedule': anneal_sched_custom(),
+                         #'anneal_schedule': anneal_sched_custom(),
                          'num_spin_reversal_transforms': 2}  # default: 2
 
     print("INFO: annealing (n_reads=%i) ..." % num_reads)
@@ -160,7 +161,13 @@ y = compact_vector(q, n)
 energy_true_x = get_energy(bqm, x_b)
 energy_true_z = get_energy(bqm, z_b)
 
-print("INFO: best-fit:   ", q, "::", y, ":: E =", energy_bestfit)
+from scipy import stats
+dof = N - 1
+chi2, p = stats.chisquare(y, z, dof)
+chi2dof = chi2 / float(dof)
+
+print("INFO: best-fit:   ", q, "::", y, ":: E =",
+      energy_bestfit, ":: chi2/dof = %.2f" % chi2dof)
 print("INFO: truth value:", z_b, "::", z, ":: E =", energy_true_z)
 
 from sklearn.metrics import accuracy_score
@@ -169,5 +176,4 @@ print("INFO: accuracy:", score)
 
 print("INFO: add the following line to the list of unfolded results")
 print(list(y), end='')
-print(', # E =', energy_bestfit)
-
+print(', # E =', energy_bestfit, "chi2/dof = %.2f" % chi2dof)

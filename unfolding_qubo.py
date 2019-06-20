@@ -11,7 +11,7 @@ from decimal2binary import *
 
 # DWave stuff
 import dimod
-from dwave.system import EmbeddingComposite, FixedEmbeddingComposite, DWaveSampler
+from dwave.system import EmbeddingComposite, FixedEmbeddingComposite, TilingComposite, DWaveSampler
 from dwave_tools import get_embedding_with_short_chain, get_energy, anneal_sched_custom
 import neal
 
@@ -37,8 +37,8 @@ N = x.shape[0]
 print("INFO: N bins:", N)
 print("INFO: n-bits encoding:", n)
 
-lmbd = int(args.lmbd)
-lmbd = np.uint8(lmbd)  # regularization strength
+lmbd = float(args.lmbd)  # regularization strength
+# lmbd = np.uint8(lmbd)
 D = laplacian(N)
 
 # convert to bits
@@ -65,6 +65,7 @@ print("INFO: regularization strength:", lmbd)
 # Create QUBO operator
 
 # linear constraints
+Q = np.zeros([n*N, n*N])
 h = {}
 for j in range(n*N):
     idx = (j)
@@ -73,7 +74,7 @@ for j in range(n*N):
         h[idx] += (R_b[i][j]*R_b[i][j] -
                    2*R_b[i][j] * d[i] +
                    lmbd*D_b[i][j]*D_b[i][j])
-    #print("h", idx, ":", h[idx])
+        Q[j][j] = h[idx]
 
 # quadratic constraints
 J = {}
@@ -83,13 +84,18 @@ for j in range(n*N):
         J[idx] = 0
         for i in range(N):
             J[idx] += 2*(R_b[i][j]*R_b[i][k] + lmbd*D_b[i][j]*D_b[i][k])
-        #print("J", idx, ":", J[idx])
+        Q[j][k] = J[idx]
+print("INFO: QUBO coefficients:")
+print(Q)
 
 # QUBO
-bqm = dimod.BinaryQuadraticModel(linear=h,
-                                 quadratic=J,
-                                 offset=0.0,
-                                 vartype=dimod.BINARY)
+# bqm = dimod.BinaryQuadraticModel(linear=h,
+#                                 quadratic=J,
+#                                 offset=0.0,
+#                                 vartype=dimod.BINARY)
+
+bqm = dimod.BinaryQuadraticModel.from_numpy_matrix(Q)
+
 print("INFO: solving the QUBO model...")
 
 result = None
@@ -113,22 +119,24 @@ elif args.backend == 'qpu':
         exit(0)
 
     print("INFO: creating DWave sampler...")
-    #sampler = FixedEmbeddingComposite(hardware_sampler, embedding)
-    sampler = EmbeddingComposite(hardware_sampler)  # default
+    sampler = FixedEmbeddingComposite(hardware_sampler, embedding)
+    # sampler = EmbeddingComposite(hardware_sampler)  # default
+    #sampler = VirtualGraphComposite(hardware_sampler, embedding)
+    #sampler = TilingComposite(hardware_sampler, sub_m=8, sub_n=8)
 
     solver_parameters = {'num_reads': num_reads,
-                         #'postprocess':   'sampling',
+                         #'postprocess':   'sampling', # seems very bad!
                          #'postprocess':  'optimization',
                          'auto_scale': True,
-                         #'annealing_time': 20,  # default: 20 us
-                         'anneal_schedule': anneal_sched_custom(),
-                         'num_spin_reversal_transforms': 2}  # default: 2
+                         #'annealing_time': 200,  # default: 20 us
+                         #'anneal_schedule': anneal_sched_custom(id=2),
+                         'num_spin_reversal_transforms': 2,  # default: 2
+                         }
 
     print("INFO: annealing (n_reads=%i) ..." % num_reads)
     if not dry_run:
         result = sampler.sample(bqm, **solver_parameters).aggregate()
-        # result = sampler.sample(
-        #    bqm, num_reads=num_reads).aggregate()  # default
+
 
 elif args.backend == 'sim':
     print("INFO: running on simulated annealer (neal)")
@@ -142,8 +150,19 @@ elif args.backend == 'sim':
 print("INFO: ...done.")
 
 if dry_run:
-    print("INFO: dry runn.")
+    print("INFO: dry run.")
     exit(0)
+
+r_energy = np.array([0.]*len(result))
+w_energy = np.array([0.]*len(result))
+i = 0
+for res in result.record:
+    r_energy[i] = res.energy
+    w_energy[i] = res.num_occurrences
+h_energy = np.histogram(
+    r_energy, bins=np.linspace(-5500, -3500, num=11), weights=w_energy)
+print("INFO: energy histogram:")
+print(h_energy)
 
 best_fit = result.first
 energy_bestfit = best_fit.energy
