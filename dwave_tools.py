@@ -94,3 +94,9 @@ def get_energy(bqm, sample):
     E = sample.dot(M).dot(sample.transpose())
 
     return float(E) + off
+
+# define a qbsolv-like workflow
+def merge_substates(_, substates):
+    a, b = substates
+    return a.updated(subsamples=hybrid.hstack_samplesets(a.subsamples, b.subsamples))
+

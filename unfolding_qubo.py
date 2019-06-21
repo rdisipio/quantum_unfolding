@@ -12,14 +12,14 @@ from decimal2binary import *
 # DWave stuff
 import dimod
 from dwave.system import EmbeddingComposite, FixedEmbeddingComposite, TilingComposite, DWaveSampler
-from dwave_tools import get_embedding_with_short_chain, get_energy, anneal_sched_custom
+from dwave_tools import get_embedding_with_short_chain, get_energy, anneal_sched_custom, merge_substates
 import neal
 
 np.set_printoptions(precision=1, linewidth=200, suppress=True)
 
 parser = argparse.ArgumentParser("Quantum unfolding")
 parser.add_argument('-l', '--lmbd', default=0)
-parser.add_argument('-n', '--nreads', default=5000)
+parser.add_argument('-n', '--nreads', default=100)
 parser.add_argument('-b', '--backend', default='sim')  # [sim, qpu, hyb]
 parser.add_argument('-d', '--dry-run', action='store_true', default=False)
 args = parser.parse_args()
@@ -98,7 +98,7 @@ print(Q)
 
 bqm = dimod.BinaryQuadraticModel.from_numpy_matrix(Q)
 
-print("INFO: solving the QUBO model...")
+print("INFO: solving the QUBO model (size=%i)..." % len(bqm))
 
 result = None
 if args.backend == 'cpu':
@@ -106,7 +106,7 @@ if args.backend == 'cpu':
     if not dry_run:
         result = dimod.ExactSolver().sample(bqm)
 
-elif args.backend in [ 'qpu', 'hyb' ]:
+elif args.backend in ['qpu', 'hyb']:
     print("INFO: running on QPU")
 
     hardware_sampler = DWaveSampler()
@@ -137,22 +137,35 @@ elif args.backend in [ 'qpu', 'hyb' ]:
 
     print("INFO: annealing (n_reads=%i) ..." % num_reads)
     if not dry_run:
-      if args.backend == 'qpu':
-        results = sampler.sample(bqm, **solver_parameters).aggregate()
-      elif args.backend == 'hyb':
-        import hybrid
+        if args.backend == 'qpu':
+            results = sampler.sample(bqm, **solver_parameters).aggregate()
+        elif args.backend == 'hyb':
+            import hybrid
 
-        iteration = hybrid.RacingBranches(
-            hybrid.Identity(),
-            hybrid.InterruptableTabuSampler(),
-            hybrid.EnergyImpactDecomposer(size=2)
-            | hybrid.QPUSubproblemAutoEmbeddingSampler()
-            | hybrid.SplatComposer()
-        ) | hybrid.ArgMin()
-        workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=3)
+            subproblem = hybrid.Unwind(
+                hybrid.EnergyImpactDecomposer(
+                    size=N, rolling_history=0.20)  # divide into 20% chunks
+            )
+            subsampler = hybrid.Map(
+                hybrid.QPUSubproblemAutoEmbeddingSampler(num_reads=100)
+            ) | hybrid.Reduce(
+                hybrid.Lambda(merge_substates)
+            ) | hybrid.SplatComposer()
 
-        init_state = hybrid.State.from_problem(bqm)
-        results = workflow.run(init_state).result().samples
+            #composer = hybrid.SplatComposer()
+
+            iteration = hybrid.RacingBranches(
+                hybrid.Identity(),
+                hybrid.InterruptableTabuSampler(),
+                subproblem | subsampler
+            ) | hybrid.ArgMin()
+            # | hybrid.TabuProblemSampler(timeout=1)
+            workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=3)
+            #workflow = hybrid.Loop(iteration, max_iter=10, convergence=3)
+            # show execution profile
+            hybrid.profiling.print_counters(workflow)
+            init_state = hybrid.State.from_problem(bqm)
+            results = workflow.run(init_state).result().samples
 
 elif args.backend == 'sim':
     print("INFO: running on simulated annealer (neal)")

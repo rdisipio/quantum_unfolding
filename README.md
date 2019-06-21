@@ -116,3 +116,11 @@ Make plots:
 ./plot_unfolded.py # unfolded only nominal, no systematics
 ./plot_unfolded_syst.py # unfolded w/ systematics
 ```
+
+# Running in hybrid mode
+
+```
+DWAVE_HYBRID_LOG_LEVEL=INFO ./unfolding_qubo.py -b hyb
+```
+
+
