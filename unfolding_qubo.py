@@ -31,7 +31,7 @@ if dry_run:
 
 from input_data import *
 
-n = 4
+n = 8
 N = x.shape[0]
 
 print("INFO: N bins:", N)
@@ -142,26 +142,16 @@ elif args.backend in ['qpu', 'hyb']:
         elif args.backend == 'hyb':
             import hybrid
 
-            subproblem = hybrid.Unwind(
-                hybrid.EnergyImpactDecomposer(
-                    size=N, rolling_history=0.20)  # divide into 20% chunks
-            )
-            subsampler = hybrid.Map(
-                hybrid.QPUSubproblemAutoEmbeddingSampler(num_reads=100)
-            ) | hybrid.Reduce(
-                hybrid.Lambda(merge_substates)
-            ) | hybrid.SplatComposer()
-
-            #composer = hybrid.SplatComposer()
-
+            # Define the workflow
             iteration = hybrid.RacingBranches(
                 hybrid.Identity(),
                 hybrid.InterruptableTabuSampler(),
-                subproblem | subsampler
+                hybrid.EnergyImpactDecomposer(size=2)
+                | hybrid.QPUSubproblemAutoEmbeddingSampler(num_reads=100)
+                | hybrid.SplatComposer()
             ) | hybrid.ArgMin()
-            # | hybrid.TabuProblemSampler(timeout=1)
             workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=3)
-            #workflow = hybrid.Loop(iteration, max_iter=10, convergence=3)
+
             # show execution profile
             hybrid.profiling.print_counters(workflow)
             init_state = hybrid.State.from_problem(bqm)
