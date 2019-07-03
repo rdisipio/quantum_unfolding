@@ -37,7 +37,7 @@ dof = N - 1
 lmbd = 0.  # regularization strength
 num_reads = 100  # number of reads
 n = 4  # number of bits
-annealing_time = 20.
+annealing_time = 100.  # us
 max_evals = int(args.max_evals)
 
 
@@ -88,7 +88,7 @@ sampler = FixedEmbeddingComposite(hardware_sampler, embedding)
 
 solver_parameters = {'num_reads': num_reads,
                      'auto_scale': True,
-                     #'annealing_time': annealing_time,  # default: 20 us
+                     'annealing_time': annealing_time,  # default: 20 us
                      #'anneal_schedule': anneal_sched_custom(id=3),
                      #'num_spin_reversal_transforms': 2,  # default: 2
                      }
@@ -96,7 +96,9 @@ solver_parameters = {'num_reads': num_reads,
 # schedule = make_reverse_anneal_schedule(s_target=0.99,
 #                                        hold_time=1,
 #                                        ramp_up_slope=0.2)
-schedule = [(0, 1.0), (2, 0.15), (8, 0.15), (10, 1.0)]
+#schedule = [(0.0, 1.0), (1.0, 0.7), (7.0, 0.7), (10.0, 1.0)]
+#schedule = [(0.0, 1.0), (2.0, 0.7), (8.0, 0.7), (10.0, 1.0)]
+schedule = [(0.0, 1.0), (2.0, 0.7), (98.0, 0.7), (100.0, 1.0)]
 print("INFO: reverse annealing schedule:")
 print(schedule)
 
@@ -109,6 +111,7 @@ energy_bestfit = best_fit.energy
 q = np.array(list(best_fit.sample.values()))
 y = compact_vector(q, n)
 min_hamming = hamming(z_b, q)
+best_chi2, best_p = stats.chisquare(y, z, dof)
 
 neal_solution = neal_sampler.sample(bqm, num_reads=num_reads).aggregate().first
 neal_energy = neal_solution.energy
@@ -129,7 +132,7 @@ for itrial in range(max_evals):
 
     reverse_anneal_params = dict(anneal_schedule=schedule,
                                  initial_state=best_fit.sample,
-                                 reinitialize_state=False)
+                                 reinitialize_state=True)
 
     solver_parameters = {'num_reads': num_reads,
                          'auto_scale': True,
@@ -147,12 +150,13 @@ for itrial in range(max_evals):
 
     this_chi2, this_p = stats.chisquare(this_y, z, dof)
 
-    print("INFO: this solution:", this_q,
-          "::", this_y, ":: E =", this_energy)
-    print("INFO: best solution:", q, "::", y, ":: E =", energy_bestfit)
+    print("INFO: this solution:", this_q, "::", this_y, ":: E =", this_energy,
+          ":: hamm =", this_hamm, "chi2/dof = %.3f" % (this_chi2/float(dof))
+          )
+    print("INFO: best solution:", q, "::", y, ":: E =", energy_bestfit,
+          ":: hamm =", min_hamming, "chi2/dof = %.3f" % (best_chi2/float(dof))
+          )
     print("INFO: truth value:  ", z_b, "::", z, ":: E =", energy_true_z)
-    print("INFO: hamming distance:", this_hamm)
-    print("INFO: chi2/dof: %.3f" % (this_chi2/float(dof)))
 
     # if this_hamm < min_hamming: # makes no sense in real life where truth is unknown!
     if this_energy < energy_bestfit:
@@ -161,6 +165,8 @@ for itrial in range(max_evals):
         q = this_q
         y = this_y
         min_hamming = this_hamm
+        best_chi2 = this_chi2
+        best_p = this_p
         print("INFO: improved!")
 
     print(" --- ")

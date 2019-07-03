@@ -143,12 +143,14 @@ elif args.backend in ['qpu', 'hyb']:
             import hybrid
 
             # Define the workflow
+            # hybrid.EnergyImpactDecomposer(size=len(bqm), rolling_history=0.15)
             iteration = hybrid.RacingBranches(
                 hybrid.Identity(),
                 hybrid.InterruptableTabuSampler(),
-                #                hybrid.EnergyImpactDecomposer(size=2)
-                #                | hybrid.QPUSubproblemAutoEmbeddingSampler(num_reads=100)
-                #                | hybrid.SplatComposer()
+                hybrid.EnergyImpactDecomposer(
+                    size=len(bqm), rolling=True, rolling_history=0.2)
+                | hybrid.QPUSubproblemAutoEmbeddingSampler(num_reads=100)
+                | hybrid.SplatComposer()
             ) | hybrid.ArgMin()
             workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=3)
 
