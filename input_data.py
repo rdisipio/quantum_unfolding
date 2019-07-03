@@ -7,8 +7,8 @@ z = [6,  9, 13,  5, 3]  # pseudo-data
 #x = [1, 3, 2, 2, 1]
 #z = [1, 2, 3, 2, 1]
 
-#x = [ 2, 4, 3 ]
-#z = [ 2, 3, 2 ]
+#x = [2, 4, 3]
+#z = [2, 3, 2]
 
 # nominal response matrix:
 R0 = [[1, 1, 0, 0, 0],
@@ -18,7 +18,7 @@ R0 = [[1, 1, 0, 0, 0],
       [0, 0, 0, 1, 2],
       ]
 
-#R0 = np.diag([2., 2., 2., 2.])
+#R0 = np.diag([2., 2., 2.])
 
 x = np.array(x)  # , dtype='uint8')
 R0 = np.array(R0)  # , dtype='uint8')
@@ -57,6 +57,8 @@ Nparams = Nbins + Nsyst
 # syst2 = shape change
 dy1 = [1, 1, 1, 1, 1]
 dy2 = [1, 2, 3, 2, 1]
+#dy1 = [1, 1, 1]
+#dy2 = [1, 2, 1]
 
 S = np.vstack((dy1, dy2)).T
 I = np.eye(Nsyst)

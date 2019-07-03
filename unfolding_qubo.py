@@ -11,9 +11,9 @@ from decimal2binary import *
 
 # DWave stuff
 import dimod
+import neal
 from dwave.system import EmbeddingComposite, FixedEmbeddingComposite, TilingComposite, DWaveSampler
 from dwave_tools import get_embedding_with_short_chain, get_energy, anneal_sched_custom, merge_substates
-import neal
 
 np.set_printoptions(precision=1, linewidth=200, suppress=True)
 
@@ -64,6 +64,7 @@ print("INFO: regularization strength:", lmbd)
 
 # Create QUBO operator
 Q = np.zeros([n*N, n*N])
+S = {}
 
 # linear constraints
 h = {}
@@ -77,6 +78,7 @@ for j in range(n*N):
             lmbd*D_b[i][j]*D_b[i][j]
         )
     Q[j][j] = h[idx]
+    S[(j, j)] = h[idx]
 
 # quadratic constraints
 J = {}
@@ -87,6 +89,7 @@ for j in range(n*N):
         for i in range(N):
             J[idx] += 2*(R_b[i][j]*R_b[i][k] + lmbd*D_b[i][j]*D_b[i][k])
         Q[j][k] = J[idx]
+        S[idx] = J[idx]
 print("INFO: QUBO coefficients:")
 print(Q)
 
@@ -112,19 +115,16 @@ elif args.backend in ['qpu', 'hyb']:
     hardware_sampler = DWaveSampler()
 
     print("INFO: finding optimal minor embedding...")
-    embedding = get_embedding_with_short_chain(J,
+    embedding = get_embedding_with_short_chain(S,
                                                tries=5,
                                                processor=hardware_sampler.edgelist,
                                                verbose=True)
     if embedding == None:
-        raise("ERROR: could not find embedding")
+        print("ERROR: could not find embedding")
         exit(0)
 
     print("INFO: creating DWave sampler...")
     sampler = FixedEmbeddingComposite(hardware_sampler, embedding)
-    # sampler = EmbeddingComposite(hardware_sampler)  # default
-    #sampler = VirtualGraphComposite(hardware_sampler, embedding)
-    #sampler = TilingComposite(hardware_sampler, sub_m=8, sub_n=8)
 
     solver_parameters = {'num_reads': num_reads,
                          #'postprocess':   'sampling', # seems very bad!
@@ -146,16 +146,19 @@ elif args.backend in ['qpu', 'hyb']:
             iteration = hybrid.RacingBranches(
                 hybrid.Identity(),
                 hybrid.InterruptableTabuSampler(),
-                hybrid.EnergyImpactDecomposer(size=2)
-                | hybrid.QPUSubproblemAutoEmbeddingSampler(num_reads=100)
-                | hybrid.SplatComposer()
+                #                hybrid.EnergyImpactDecomposer(size=2)
+                #                | hybrid.QPUSubproblemAutoEmbeddingSampler(num_reads=100)
+                #                | hybrid.SplatComposer()
             ) | hybrid.ArgMin()
             workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=3)
 
             # show execution profile
-            hybrid.profiling.print_counters(workflow)
             init_state = hybrid.State.from_problem(bqm)
             results = workflow.run(init_state).result().samples
+            print("INFO: timing:")
+            workflow.timers
+            hybrid.print_structure(workflow)
+            hybrid.profiling.print_counters(workflow)
 
 elif args.backend == 'sim':
     print("INFO: running on simulated annealer (neal)")
@@ -200,8 +203,12 @@ print("INFO: best-fit:   ", q, "::", y, ":: E =",
 print("INFO: truth value:", z_b, "::", z, ":: E =", energy_true_z)
 
 from sklearn.metrics import accuracy_score
-score = accuracy_score(x_b, q)
+score = accuracy_score(z_b, q)
 print("INFO: accuracy:", score)
+
+from scipy.spatial.distance import hamming
+hamm = hamming(z_b, q)
+print("Hamming:", hamm)
 
 print("INFO: add the following line to the list of unfolded results")
 print(list(y), end='')

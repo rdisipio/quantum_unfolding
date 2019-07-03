@@ -80,7 +80,7 @@ def objective(args):
                                      vartype=dimod.BINARY)
 
     embedding = get_embedding_with_short_chain(S,
-                                               tries=10,
+                                               tries=5,
                                                processor=hardware_sampler.edgelist, verbose=False)
 
     sampler = FixedEmbeddingComposite(hardware_sampler, embedding)
@@ -100,13 +100,18 @@ def objective(args):
     chi2, p = stats.chisquare(y, z, dof)
     chi2dof = chi2 / float(dof)
 
-    hamm = hamming(x_b, q)
+    hamm = hamming(z_b, q)
 
     return {
         'loss': hamm,  # chi2dof,
         'status': hp.STATUS_OK,
         'diffxs': y,
+        'q': q,
         'hamming': hamm,
+        'lmbd': lmbd,
+        'num_reads': num_reads,
+        'num_bits': n,
+        'annealing_time': annealing_time,
     }
 
 
@@ -114,10 +119,10 @@ max_evals = int(args.max_evals)
 
 space = hp.hp.choice('unfolder', [
                      {
-                         'lmbd': hp.hp.choice('lmbd', range(0, 2)),
-                         'num_reads': hp.hp.choice('num_reads', range(1000, 6000, 1000)),
+                         'lmbd': hp.hp.choice('lmbd', [0.0, 0.5, 1.0]),
+                         'num_reads': hp.hp.choice('num_reads', [100, 500, 1000]),
                          'num_bits': hp.hp.choice('num_bits', [4, 8]),
-                         'annealing_time': hp.hp.choice('annealing_time', range(10, 60, 10)),
+                         'annealing_time': hp.hp.choice('annealing_time', [20, 50, 100]),
                      }
                      ])
 
@@ -130,8 +135,13 @@ bestfit = hp.fmin(fn=objective,
                   max_evals=max_evals)
 print(bestfit)
 
-# results = pd.DataFrame({'loss': [x['loss'] for x in tpe_trials.results],
+for trial in tpe_trials:
+    print("Trial:")
+    print(trial)
+    print(" --- ")
+
+# results = pd.DataFrame({'loss': [r['loss'] for r in tpe_trials.results],
 #                        'iteration': tpe_trials.idxs_vals[0]['x'],
 #                        'x': tpe_trials.idxs_vals[1]['x']}
-#                       )
+#                      )
 # print(results.head())
