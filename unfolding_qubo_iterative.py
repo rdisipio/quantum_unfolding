@@ -7,6 +7,7 @@ import datetime as dt
 import numpy as np
 from scipy import stats
 from scipy.spatial.distance import hamming
+from scipy import stats
 
 from decimal2binary import *
 from input_data import *
@@ -30,10 +31,11 @@ hardware_sampler = DWaveSampler()
 # constants
 N = x.shape[0]
 D = laplacian(N)
+dof = N - 1
 
 # parameters to be optimized
 lmbd = 0.  # regularization strength
-num_reads = 1000  # number of reads
+num_reads = 100  # number of reads
 n = 4  # number of bits
 annealing_time = 20.
 max_evals = int(args.max_evals)
@@ -91,9 +93,12 @@ solver_parameters = {'num_reads': num_reads,
                      #'num_spin_reversal_transforms': 2,  # default: 2
                      }
 
-schedule = make_reverse_anneal_schedule(s_target=0.99,
-                                        hold_time=1,
-                                        ramp_up_slope=0.2)
+# schedule = make_reverse_anneal_schedule(s_target=0.99,
+#                                        hold_time=1,
+#                                        ramp_up_slope=0.2)
+schedule = [(0, 1.0), (2, 0.15), (8, 0.15), (10, 1.0)]
+print("INFO: reverse annealing schedule:")
+print(schedule)
 
 neal_sampler = neal.SimulatedAnnealingSampler()
 
@@ -119,9 +124,12 @@ print("INFO: hamming distance:", min_hamming)
 print(" --- ")
 
 for itrial in range(max_evals):
+    #s = 1.00 - 1.5 * min_hamming
+    #schedule = [(0, 1.0), (2, s), (8, s), (10, 1.0)]
+
     reverse_anneal_params = dict(anneal_schedule=schedule,
                                  initial_state=best_fit.sample,
-                                 reinitialize_state=True)
+                                 reinitialize_state=False)
 
     solver_parameters = {'num_reads': num_reads,
                          'auto_scale': True,
@@ -129,6 +137,7 @@ for itrial in range(max_evals):
                          }
 
     print("INFO: refine solution: attempt %i/%i" % (itrial+1, max_evals))
+    print("INFO: schedule:", schedule)
     this_result = sampler.sample(
         bqm, **solver_parameters).aggregate().first
     this_energy = this_result.energy
@@ -136,12 +145,17 @@ for itrial in range(max_evals):
     this_y = compact_vector(this_q, n)
     this_hamm = hamming(z_b, this_q)
 
+    this_chi2, this_p = stats.chisquare(this_y, z, dof)
+
     print("INFO: this solution:", this_q,
-          "::", this_y, ":: E=", this_energy)
+          "::", this_y, ":: E =", this_energy)
+    print("INFO: best solution:", q, "::", y, ":: E =", energy_bestfit)
     print("INFO: truth value:  ", z_b, "::", z, ":: E =", energy_true_z)
     print("INFO: hamming distance:", this_hamm)
+    print("INFO: chi2/dof: %.3f" % (this_chi2/float(dof)))
 
-    if this_hamm < min_hamming:
+    # if this_hamm < min_hamming: # makes no sense in real life where truth is unknown!
+    if this_energy < energy_bestfit:
         best_fit = this_result
         energy_bestfit = this_energy
         q = this_q
@@ -153,8 +167,6 @@ for itrial in range(max_evals):
 
 print("INFO: Final results:")
 
-from scipy import stats
-dof = N - 1
 chi2, p = stats.chisquare(y, z, dof)
 chi2dof = chi2 / float(dof)
 
