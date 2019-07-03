@@ -13,6 +13,8 @@ from input_data import *
 
 # DWave stuff
 import dimod
+import neal
+
 from dwave.system import EmbeddingComposite, FixedEmbeddingComposite, TilingComposite, DWaveSampler
 from dwave_tools import get_embedding_with_short_chain, get_energy, anneal_sched_custom, make_reverse_anneal_schedule
 
@@ -31,7 +33,7 @@ D = laplacian(N)
 
 # parameters to be optimized
 lmbd = 0.  # regularization strength
-nreads = 1000  # number of reads
+num_reads = 1000  # number of reads
 n = 4  # number of bits
 annealing_time = 20.
 max_evals = int(args.max_evals)
@@ -82,7 +84,7 @@ embedding = get_embedding_with_short_chain(S,
 
 sampler = FixedEmbeddingComposite(hardware_sampler, embedding)
 
-solver_parameters = {'num_reads': nreads,
+solver_parameters = {'num_reads': num_reads,
                      'auto_scale': True,
                      #'annealing_time': annealing_time,  # default: 20 us
                      #'anneal_schedule': anneal_sched_custom(id=3),
@@ -93,6 +95,9 @@ schedule = make_reverse_anneal_schedule(s_target=0.99,
                                         hold_time=1,
                                         ramp_up_slope=0.2)
 
+neal_sampler = neal.SimulatedAnnealingSampler()
+
+
 print("INFO: solving initial state")
 best_fit = sampler.sample(bqm, **solver_parameters).aggregate().first
 energy_bestfit = best_fit.energy
@@ -100,8 +105,15 @@ q = np.array(list(best_fit.sample.values()))
 y = compact_vector(q, n)
 min_hamming = hamming(z_b, q)
 
+neal_solution = neal_sampler.sample(bqm, num_reads=num_reads).aggregate().first
+neal_energy = neal_solution.energy
+neal_q = np.array(list(neal_solution.sample.values()))
+neal_y = compact_vector(neal_q, n)
+neal_hamm = hamming(z_b, neal_q)
+
 print("INFO: initial solution:", q,
       "::", y, ":: E=", energy_bestfit)
+print("INFO: neal solution:", neal_q, "::", neal_y, ":: E =", neal_energy)
 print("INFO: truth value:  ", z_b, "::", z, ":: E =", energy_true_z)
 print("INFO: hamming distance:", min_hamming)
 print(" --- ")
@@ -111,10 +123,11 @@ for itrial in range(max_evals):
                                  initial_state=best_fit.sample,
                                  reinitialize_state=True)
 
-    solver_parameters = {'num_reads': nreads,
+    solver_parameters = {'num_reads': num_reads,
                          'auto_scale': True,
                          **reverse_anneal_params,
                          }
+
     print("INFO: refine solution: attempt %i/%i" % (itrial+1, max_evals))
     this_result = sampler.sample(
         bqm, **solver_parameters).aggregate().first
@@ -148,8 +161,9 @@ chi2dof = chi2 / float(dof)
 from sklearn.metrics import accuracy_score
 score = accuracy_score(z_b, q)
 
-print("INFO: best-fit:   ", q, "::", y, ":: E =", energy_bestfit)
-print("INFO: truth value:", z_b, "::", z, ":: E =", energy_true_z)
-print("INFO: accuracy:", score)
+print("INFO: best-fit:     ", q, "::", y, ":: E =", energy_bestfit)
+print("INFO: neal solution:", neal_q, "::", neal_y, ":: E =", neal_energy)
+print("INFO: truth value:  ", z_b, "::", z, ":: E =", energy_true_z)
+print("INFO: accuracy:     ", score)
 print("INFO: chi2/dof = %.2f" % chi2dof)
 print("INFO: hamming distance:", min_hamming)
