@@ -12,15 +12,17 @@ from decimal2binary import *
 # DWave stuff
 import dimod
 import neal
+from dwave_qbsolv import QBSolv
+
 from dwave.system import EmbeddingComposite, FixedEmbeddingComposite, TilingComposite, DWaveSampler
 from dwave_tools import get_embedding_with_short_chain, get_energy, anneal_sched_custom, merge_substates
 
-np.set_printoptions(precision=1, linewidth=200, suppress=True)
+np.set_printoptions(precision=1, linewidth=400, suppress=True)
 
 parser = argparse.ArgumentParser("Quantum unfolding")
 parser.add_argument('-l', '--lmbd', default=0)
 parser.add_argument('-n', '--nreads', default=100)
-parser.add_argument('-b', '--backend', default='sim')  # [sim, qpu, hyb]
+parser.add_argument('-b', '--backend', default='sim')  # [cpu, sim, qpu, hyb, qbs]
 parser.add_argument('-d', '--dry-run', action='store_true', default=False)
 args = parser.parse_args()
 
@@ -109,7 +111,7 @@ if args.backend == 'cpu':
     if not dry_run:
         result = dimod.ExactSolver().sample(bqm)
 
-elif args.backend in ['qpu', 'hyb']:
+elif args.backend in ['qpu', 'hyb', 'qbs']:
     print("INFO: running on QPU")
 
     hardware_sampler = DWaveSampler()
@@ -130,7 +132,7 @@ elif args.backend in ['qpu', 'hyb']:
                          #'postprocess':   'sampling', # seems very bad!
                          #'postprocess':  'optimization',
                          'auto_scale': True,
-                         #'annealing_time': 200,  # default: 20 us
+                         'annealing_time': 10,  # default: 20 us
                          #'anneal_schedule': anneal_sched_custom(id=3),
                          'num_spin_reversal_transforms': 2,  # default: 2
                          }
@@ -138,8 +140,14 @@ elif args.backend in ['qpu', 'hyb']:
     print("INFO: annealing (n_reads=%i) ..." % num_reads)
     if not dry_run:
         if args.backend == 'qpu':
-            results = sampler.sample(bqm, **solver_parameters).aggregate()
+            print("INFO: Using QPU")
+            #results = sampler.sample(bqm, **solver_parameters).aggregate()
+            results = sampler.sample_qubo(S, **solver_parameters).aggregate()
+        elif args.backend == 'qbs':
+            print("INFO: using QBsolve with FixedEmbeddingComposite")
+            results = QBSolv().sample_qubo(S, solver=sampler, solver_limit=5)
         elif args.backend == 'hyb':
+            print("INFO: hybrid")
             import hybrid
 
             # Define the workflow
@@ -187,6 +195,12 @@ if dry_run:
 #    r_energy, bins=np.linspace(-5500, -3500, num=11), weights=w_energy)
 #print("INFO: energy histogram:")
 # print(h_energy)
+
+print(results)
+#for res in results.record:
+#    #if res.energy > -5400: continue
+#    print(res.energy, res.num_occurrences)
+
 best_fit = results.first
 
 energy_bestfit = best_fit.energy
