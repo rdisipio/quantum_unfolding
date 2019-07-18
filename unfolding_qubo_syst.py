@@ -20,6 +20,7 @@ np.set_printoptions(precision=1, linewidth=200, suppress=True)
 
 parser = argparse.ArgumentParser("Quantum unfolding")
 parser.add_argument('-l', '--lmbd', default=0.00)
+parser.add_argument('-g', '--gamma', default=1)
 parser.add_argument('-n', '--nreads', default=5000)
 parser.add_argument('-b', '--backend', default='sim')  # [qpu, sim, hyb]
 parser.add_argument('-d', '--dry-run', action='store_true', default=False)
@@ -42,9 +43,14 @@ print("INFO: n-bits encoding:", n)
 lmbd = float(args.lmbd)
 D = laplacian(Nbins)
 
+gamma = float(args.gamma)
+S = gamma * S
+
 # in case Nsyst>0, extend vectors and laplacian
-D = np.block([[D, np.zeros([Nbins, Nsyst])]])  # ,
-#              [np.zeros([Nsyst, Nbins]), np.zeros([Nsyst, Nsyst])]])
+D = np.block([[D,                        np.zeros([Nbins, Nsyst])],
+              [np.zeros([Nsyst, Nbins]), np.zeros([Nsyst, Nsyst])] 
+              ])
+
 x = np.hstack((x, np.zeros(Nsyst)))
 z = np.hstack((z, s))
 d = np.dot(R, z)
@@ -56,20 +62,25 @@ z_b = discretize_vector(z, n)
 d_b = discretize_vector(d, n)
 R_b = discretize_matrix(R, n)
 D_b = discretize_matrix(D, n)
+S_b = discretize_matrix(S, n)
 
 print("INFO: Signal truth-level x:")
 print(x, x_b)
 print("INFO: Pseudo-data truth-level z:")
 print(z, z_b)
-print("INFO: Response matrix R (incl syst):")
+print("INFO: Response matrix R (incl syst):",R_b.shape)
 print(R)
 print(R_b)
 print("INFO: pseudo-data d = R.z:")
 print(d, d_b)
-print("INFO: Laplacian operator:")
+print("INFO: Laplacian operator:",D_b.shape)
 print(D)
 print(D_b)
-print("INFO: regularization strength:", lmbd)
+print("INFO: regularization strength lambda =", lmbd)
+print("INFO: systematics operator:",S_b.shape)
+print(S)
+print(S_b)
+print("Systematics penalty strength gamma =", gamma)
 
 # Create QUBO operator
 Q = np.zeros([n*Nparams, n*Nparams])
@@ -80,9 +91,13 @@ for j in range(n*Nparams):
     idx = (j)
     h[idx] = 0
     for i in range(Nbins):
-        h[idx] += (R_b[i][j]*R_b[i][j] -
-                   2*R_b[i][j] * d[i] +
-                   lmbd*D_b[i][j]*D_b[i][j])
+        h[idx] += (R_b[i][j]*R_b[i][j]
+                   -2*R_b[i][j] * d[i])
+
+    for i in range(Nparams):
+        h[idx] += ( lmbd*D_b[i][j]*D_b[i][j] 
+                    -gamma*S_b[i][j]*S_b[i][j] )
+
     Q[j][j] = h[idx]
 
 # quadratic constraints
@@ -92,7 +107,12 @@ for j in range(n*Nparams):
         idx = (j, k)
         J[idx] = 0
         for i in range(Nbins):
-            J[idx] += 2*(R_b[i][j]*R_b[i][k] + lmbd*D_b[i][j]*D_b[i][k])
+            J[idx] += 2*R_b[i][j]*R_b[i][k]
+
+        for i in range(Nparams):
+            J[idx] += 2*( lmbd*D_b[i][j]*D_b[i][k] 
+                          - S_b[i][j]*S_b[i][k] )
+
         Q[j][k] = J[idx]
 print("INFO: QUBO coefficients:")
 print(Q)
@@ -147,16 +167,21 @@ elif args.backend in [ 'qpu', 'hyb' ]:
         import hybrid
 
         iteration = hybrid.RacingBranches(
-            hybrid.Identity(),
+            #hybrid.Identity(),
             hybrid.InterruptableTabuSampler(),
-            hybrid.EnergyImpactDecomposer(size=2)
-            | hybrid.QPUSubproblemAutoEmbeddingSampler()
+            hybrid.EnergyImpactDecomposer(size=len(bqm)//4, rolling=True)
+            | hybrid.QPUSubproblemAutoEmbeddingSampler(num_reads=num_reads)
             | hybrid.SplatComposer()
         ) | hybrid.ArgMin()
         workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=3)
 
+        # show execution profile
         init_state = hybrid.State.from_problem(bqm)
         results = workflow.run(init_state).result().samples
+        print("INFO: timing:")
+        workflow.timers
+        hybrid.print_structure(workflow)
+        hybrid.profiling.print_counters(workflow)
 
 elif args.backend == 'sim':
     print("INFO: running on simulated annealer (neal)")
@@ -190,8 +215,12 @@ print("INFO: best-fit:   ", q, "::", y, ":: E =",
 print("INFO: truth value:", z_b, "::", z, ":: E =", energy_true_z)
 
 from sklearn.metrics import accuracy_score
-score = accuracy_score(x_b, q)
+score = accuracy_score(z_b, q)
 print("INFO: accuracy:", score)
+
+from scipy.spatial.distance import hamming
+hamm = hamming(z_b, q)
+print("Hamming:", hamm)
 
 print("INFO: add the following line to the list of unfolded results")
 print(list(y), end='')

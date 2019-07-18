@@ -86,7 +86,7 @@ for isyst in range(Nsyst):
 
 
 # ax_syst.get_yaxis().set_visible(False)
-ax_syst.set_xlim(-0.5, 2.5)
+ax_syst.set_xlim(-0.5, 5.5)
 ax_syst.set_ylim(-0.5, Nsyst-0.5)
 ax_syst.xaxis.label.set_fontsize(14)
 ax_syst.set_xlabel("$\lambda$")

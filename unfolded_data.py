@@ -93,7 +93,6 @@ unf_data_labels = [
 
 unf_data_syst = [
     [6,  9, 13,  5,  3, 1, 2],  # true
-    #[0.5,   1.81,  9.26, 14.94,  7.47,  0.,    0.],  # IB4
     [8.09, 11.41, 13.45,  6.57,  3.05,  0.,    0.],  # IB4
     [6,  9, 13,  5,  3,  1,  2],  # neal
     [0, 0, 0, 0, 0, 0, 0],  # QPU unreg
@@ -157,6 +156,33 @@ qpu_reads_syst_reg = np.array([
     [5, 8, 7, 4, 2, 1, 7],  # E = -7116.0 chi2/dof = 4.02
 ])
 
+# simulated annealing (neal)
+# truth: [ 6  9 13  5  3  2  1]
+sim_reads_syst_unreg = np.array([
+[0, 11, 11, 5, 1, 6, 1], # E = -6790.0 chi2/dof = 4.02
+[1, 9, 9, 4, 1, 3, 5], # E = -6790.0 chi2/dof = 5.86
+[2, 7, 7, 3, 1, 0, 9], # E = -6790.0 chi2/dof = 18.50
+[9, 8, 14, 5, 4, 0, 1], # E = -6790.0 chi2/dof = 1.01
+[1, 9, 9, 4, 1, 3, 5], # E = -6790.0 chi2/dof = 5.86
+[0, 11, 11, 5, 1, 6, 1], # E = -6790.0 chi2/dof = 4.02
+[4, 8, 10, 4, 2, 1, 5], # E = -6790.0 chi2/dof = 4.63
+[2, 7, 7, 3, 1, 0, 9], # E = -6790.0 chi2/dof = 18.50
+[1, 9, 9, 4, 1, 3, 5], # E = -6790.0 chi2/dof = 5.86
+[4, 8, 10, 4, 2, 1, 5], # E = -6790.0 chi2/dof = 4.63
+[9, 8, 14, 5, 4, 0, 1], # E = -6790.0 chi2/dof = 1.01
+[0, 11, 11, 5, 1, 6, 1], # E = -6790.0 chi2/dof = 4.02
+[0, 11, 11, 5, 1, 6, 1], # E = -6790.0 chi2/dof = 4.02
+[3, 10, 12, 5, 2, 4, 1], # E = -6790.0 chi2/dof = 1.01
+[4, 8, 10, 4, 2, 1, 5], # E = -6790.0 chi2/dof = 4.63
+[1, 9, 9, 4, 1, 3, 5], # E = -6790.0 chi2/dof = 5.86
+[2, 7, 7, 3, 1, 0, 9], # E = -6790.0 chi2/dof = 18.50
+[6, 9, 13, 5, 3, 2, 1], # E = -6790.0 chi2/dof = 0.00
+[0, 11, 11, 5, 1, 6, 1], # E = -6790.0 chi2/dof = 4.02
+[9, 8, 14, 5, 4, 0, 1], # E = -6790.0 chi2/dof = 1.01
+])
+
+unf_data_syst[2] = np.mean(sim_reads_syst_unreg,axis=0)
+unf_data_syst_unc[2] = np.std(sim_reads_syst_unreg,axis=0)
 unf_data_syst[3] = np.mean(qpu_reads_syst_unreg, axis=0)
 unf_data_syst_unc[3] = np.std(qpu_reads_syst_unreg, axis=0)
 unf_data_syst[4] = np.mean(qpu_reads_syst_reg, axis=0)

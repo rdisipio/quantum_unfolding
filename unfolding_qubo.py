@@ -11,6 +11,7 @@ from decimal2binary import *
 
 # DWave stuff
 import dimod
+import dwave_networkx as dnx
 import neal
 from dwave_qbsolv import QBSolv
 
@@ -33,7 +34,7 @@ if dry_run:
 
 from input_data import *
 
-n = 8
+n = 4
 N = x.shape[0]
 
 print("INFO: N bins:", N)
@@ -115,6 +116,8 @@ elif args.backend in ['qpu', 'hyb', 'qbs']:
     print("INFO: running on QPU")
 
     hardware_sampler = DWaveSampler()
+    #C16 = dnx.chimera_graph(16)
+    #P16 = dnx.pegasus_graph(16) # experimental
 
     print("INFO: finding optimal minor embedding...")
     embedding = get_embedding_with_short_chain(S,
@@ -135,6 +138,9 @@ elif args.backend in ['qpu', 'hyb', 'qbs']:
                          'annealing_time': 10,  # default: 20 us
                          #'anneal_schedule': anneal_sched_custom(id=3),
                          'num_spin_reversal_transforms': 2,  # default: 2
+                         #'chain_strength' : 50000,
+                         #'chain_break_fraction':0.33,
+                         #'chain_break_method':None,
                          }
 
     print("INFO: annealing (n_reads=%i) ..." % num_reads)
@@ -153,14 +159,14 @@ elif args.backend in ['qpu', 'hyb', 'qbs']:
             # Define the workflow
             # hybrid.EnergyImpactDecomposer(size=len(bqm), rolling_history=0.15)
             iteration = hybrid.RacingBranches(
-                hybrid.Identity(),
+                #hybrid.Identity(),
                 hybrid.InterruptableTabuSampler(),
-                hybrid.EnergyImpactDecomposer(
-                    size=len(bqm), rolling=True, rolling_history=0.2)
-                | hybrid.QPUSubproblemAutoEmbeddingSampler(num_reads=100)
+                hybrid.EnergyImpactDecomposer(size=len(bqm)//2, rolling=True)
+                | hybrid.QPUSubproblemAutoEmbeddingSampler(num_reads=num_reads)
                 | hybrid.SplatComposer()
             ) | hybrid.ArgMin()
             workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=3)
+            #workflow = hybrid.Loop(iteration, max_iter=20, convergence=3)
 
             # show execution profile
             init_state = hybrid.State.from_problem(bqm)
