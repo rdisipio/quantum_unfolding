@@ -32,7 +32,6 @@ if dry_run:
     print("WARNING: dry run. There will be no results at the end.")
 
 n = 4
-N = x.shape[0]
 
 print("INFO: N bins:", Nbins)
 print("INFO: N syst:", Nsyst)
@@ -52,12 +51,14 @@ D = np.block([[D,                        np.zeros([Nbins, Nsyst])],
               ])
 
 # strength of systematics in pseudo-data
-s = [2, 1]
+s = [1,1]
 
 x = np.hstack((x, np.zeros(Nsyst)))
 z = np.hstack((z, s))
 d = np.dot(R, z)
 # y = np.dot(R, x)
+
+N = z.shape[0]
 
 # convert to bits
 x_b = discretize_vector(x, n)
@@ -102,7 +103,7 @@ for j in range(n*Nparams):
         h[idx] += ( lmbd * D_b[i][j]*D_b[i][j] )
 
     # Systematics
-    for i in range(Nbins, Nparams):
+    for i in range( Nbins, Nparams):
         h[idx] += ( gamma * S_b[i][j]*S_b[i][j] )
 
     Q[j][j] = h[idx]
@@ -118,10 +119,10 @@ for j in range(n*Nparams):
 
         # Tikhonov regularization
         for i in range(Nbins):
-            J[idx] += 2 * ( lmbd * D_b[i][j]*D_b[i][k])
+            J[idx] += 2 * ( lmbd * D_b[i][j]*D_b[i][k] )
 
         # Systematics
-        for i in range(Nbins, Nparams):
+        for i in range( Nbins, Nparams):
             J[idx] += 2 * ( gamma * S_b[i][j]*S_b[i][k] )
             
         Q[j][k] = J[idx]
@@ -180,7 +181,7 @@ elif args.backend in [ 'qpu', 'hyb' ]:
         iteration = hybrid.RacingBranches(
             #hybrid.Identity(),
             hybrid.InterruptableTabuSampler(),
-            hybrid.EnergyImpactDecomposer(size=len(bqm)//4, rolling=True)
+            hybrid.EnergyImpactDecomposer(size=len(bqm), rolling=True)
             | hybrid.QPUSubproblemAutoEmbeddingSampler(num_reads=num_reads)
             | hybrid.SplatComposer()
         ) | hybrid.ArgMin()

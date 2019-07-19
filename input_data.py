@@ -2,7 +2,7 @@ import numpy as np
 
 # truth-level:
 x = [5, 8, 12, 6, 2]  # signal
-z = [6,  9, 13,  5, 3]  # pseudo-data
+z = [6, 9, 13, 5, 3]  # pseudo-data
 
 #x = [1, 3, 2, 2, 1]
 #z = [1, 2, 3, 2, 1]
