@@ -102,7 +102,7 @@ for j in range(n*Nparams):
         h[idx] += ( lmbd * D_b[i][j]*D_b[i][j] )
 
     # Systematics
-    for i in range(Nbins, Nsyst):
+    for i in range(Nbins, Nparams):
         h[idx] += ( gamma * S_b[i][j]*S_b[i][j] )
 
     Q[j][j] = h[idx]
@@ -121,9 +121,9 @@ for j in range(n*Nparams):
             J[idx] += 2 * ( lmbd * D_b[i][j]*D_b[i][k])
 
         # Systematics
-        for i in range(Nbins, Nsyst):
+        for i in range(Nbins, Nparams):
             J[idx] += 2 * ( gamma * S_b[i][j]*S_b[i][k] )
-
+            
         Q[j][k] = J[idx]
 print("INFO: QUBO coefficients:")
 print(Q)
