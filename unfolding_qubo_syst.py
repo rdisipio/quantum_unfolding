@@ -31,7 +31,7 @@ dry_run = bool(args.dry_run)
 if dry_run:
     print("WARNING: dry run. There will be no results at the end.")
 
-n = 8
+n = 4
 N = x.shape[0]
 
 print("INFO: N bins:", Nbins)
