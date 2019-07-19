@@ -16,7 +16,7 @@ from dwave.system import EmbeddingComposite, FixedEmbeddingComposite, DWaveSampl
 from dwave_tools import get_embedding_with_short_chain, get_energy, anneal_sched_custom
 import neal
 
-np.set_printoptions(precision=1, linewidth=200, suppress=True)
+np.set_printoptions(precision=1, linewidth=500, suppress=True)
 
 parser = argparse.ArgumentParser("Quantum unfolding")
 parser.add_argument('-l', '--lmbd', default=0.00)
@@ -31,7 +31,7 @@ dry_run = bool(args.dry_run)
 if dry_run:
     print("WARNING: dry run. There will be no results at the end.")
 
-n = 8
+n = 4
 N = x.shape[0]
 
 print("INFO: N bins:", Nbins)
@@ -97,10 +97,12 @@ for j in range(n*Nparams):
         h[idx] += (R_b[i][j]*R_b[i][j]
                    -2*R_b[i][j] * d[i])
 
+    # Tikhonov regularization
     for i in range(Nbins):
         h[idx] += ( lmbd * D_b[i][j]*D_b[i][j] )
 
-    for i in range(Nparams):
+    # Systematics
+    for i in range(Nbins, Nsyst):
         h[idx] += ( gamma * S_b[i][j]*S_b[i][j] )
 
     Q[j][j] = h[idx]
@@ -113,10 +115,13 @@ for j in range(n*Nparams):
         J[idx] = 0
         for i in range(Nbins):
             J[idx] += 2 * R_b[i][j]*R_b[i][k]
+
+        # Tikhonov regularization
         for i in range(Nbins):
             J[idx] += 2 * ( lmbd * D_b[i][j]*D_b[i][k])
 
-        for i in range(Nparams):
+        # Systematics
+        for i in range(Nbins, Nsyst):
             J[idx] += 2 * ( gamma * S_b[i][j]*S_b[i][k] )
 
         Q[j][k] = J[idx]
@@ -204,9 +209,26 @@ if dry_run:
     print("INFO: dry runn.")
     exit(0)
 
-best_fit = results.first
+print("INFO: Results:")
+print(results)
+
+best_fit = None
+min_energy = results.first.energy
+num_occ = results.first.num_occurrences
+for i in range( len(results.record) ):
+    if results.record[i].energy > min_energy: continue
+    if results.record[i].num_occurrences < num_occ: continue
+    best_fit   = results.record[i]
+    min_energy = results.record[i].energy
+    num_occ    = results.record[i].num_occurrences 
+
+#best_fit = results.first
+print( "INFO: best fit:")
+print(best_fit)
+
 energy_bestfit = best_fit.energy
-q = np.array(list(best_fit.sample.values()))
+#q = np.array(list(best_fit.sample.values()))
+q = best_fit.sample
 y = compact_vector(q, n)
 energy_true_x = get_energy(bqm, x_b)
 energy_true_z = get_energy(bqm, z_b)
