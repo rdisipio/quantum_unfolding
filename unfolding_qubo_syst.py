@@ -31,7 +31,7 @@ dry_run = bool(args.dry_run)
 if dry_run:
     print("WARNING: dry run. There will be no results at the end.")
 
-n = 4
+n = 8
 N = x.shape[0]
 
 print("INFO: N bins:", Nbins)
@@ -50,6 +50,9 @@ S = gamma * S
 D = np.block([[D,                        np.zeros([Nbins, Nsyst])],
               [np.zeros([Nsyst, Nbins]), np.zeros([Nsyst, Nsyst])] 
               ])
+
+# strength of systematics in pseudo-data
+s = [2, 1]
 
 x = np.hstack((x, np.zeros(Nsyst)))
 z = np.hstack((z, s))

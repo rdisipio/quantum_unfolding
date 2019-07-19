@@ -55,8 +55,8 @@ Nparams = Nbins + Nsyst
 
 # syst1 = overall shift
 # syst2 = shape change
-dy1 = [2, 2, 2, 2, 2]
-dy2 = [2, 3, 4, 3, 2]
+dy1 = [1, 1, 1, 1, 1]
+dy2 = [1, 2, 3, 2, 1]
 #dy1 = [1, 1, 1]
 #dy2 = [1, 2, 1]
 
@@ -68,6 +68,3 @@ S = np.block([
 # rectangular matrix
 T = np.vstack((dy1, dy2)).T
 R = np.block([[R0, T]])
-
-# strength of systematics in pseudo-data
-s = [2, 1]
