@@ -95,7 +95,7 @@ for j in range(n*Nparams):
                    -2*R_b[i][j] * d[i])
 
     for i in range(Nbins):
-        h[idx] += lmbd*D_b[i][j]*D_b[i][j]
+        h[idx] += ( lmbd * D_b[i][j]*D_b[i][j] )
 
     for i in range(Nparams):
         h[idx] += ( -gamma*S_b[i][j]*S_b[i][j] )
@@ -111,7 +111,7 @@ for j in range(n*Nparams):
         for i in range(Nbins):
             J[idx] += 2 * R_b[i][j]*R_b[i][k]
         for i in range(Nbins):
-            J[idx] += 2 * ( lmbd*D_b[i][j]*D_b[i][k])
+            J[idx] += 2 * ( lmbd * D_b[i][j]*D_b[i][k])
 
         for i in range(Nparams):
             J[idx] += 2 * ( - gamma * S_b[i][j]*S_b[i][k] )
