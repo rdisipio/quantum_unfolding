@@ -98,7 +98,7 @@ for j in range(n*Nparams):
         h[idx] += ( lmbd * D_b[i][j]*D_b[i][j] )
 
     for i in range(Nparams):
-        h[idx] += ( -gamma*S_b[i][j]*S_b[i][j] )
+        h[idx] += ( gamma * S_b[i][j]*S_b[i][j] )
 
     Q[j][j] = h[idx]
 
@@ -114,7 +114,7 @@ for j in range(n*Nparams):
             J[idx] += 2 * ( lmbd * D_b[i][j]*D_b[i][k])
 
         for i in range(Nparams):
-            J[idx] += 2 * ( - gamma * S_b[i][j]*S_b[i][k] )
+            J[idx] += 2 * ( gamma * S_b[i][j]*S_b[i][k] )
 
         Q[j][k] = J[idx]
 print("INFO: QUBO coefficients:")
