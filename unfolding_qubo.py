@@ -36,6 +36,15 @@ if dry_run:
     print("WARNING: dry run. There will be no results at the end.")
 
 config_file = "dwave.config"
+if args.backend.startswith( 'qpu' ):
+    if args.backend == "qpu_lonoise":
+        config_file = "dwave.conf.wittek-lownoise"
+    elif args.backend == "qpu_hinoise":
+        config_file = "dwave.conf.wittek-hinoise"
+    else:
+        print( "ERROR: unknown QPU backend", args.backend)
+        exit(1)
+    print("INFO: QPU configuration file:", config_file)
 
 from input_data import *
 
@@ -123,7 +132,7 @@ if args.backend == 'cpu':
     if not dry_run:
         result = dimod.ExactSolver().sample(bqm)
 
-elif args.backend in ['qpu', 'hyb', 'qbs']:
+elif args.backend in ['qpu', 'hyb', 'qbs', 'qpu_hinoise', 'qpu_lonoise']:
     print("INFO: running on QPU")
 
     hardware_sampler = DWaveSampler(config_file=config_file)
@@ -156,7 +165,7 @@ elif args.backend in ['qpu', 'hyb', 'qbs']:
 
     print("INFO: annealing (n_reads=%i) ..." % num_reads)
     if not dry_run:
-        if args.backend == 'qpu':
+        if args.backend in [ 'qpu', 'qpu_hinoise', 'qpu_lonoise' ]:
             print("INFO: Using QPU")
             #results = sampler.sample(bqm, **solver_parameters).aggregate()
             results = sampler.sample_qubo(S, **solver_parameters).aggregate()

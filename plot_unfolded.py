@@ -61,14 +61,8 @@ unfolded_data = {
             'mean' : z,
             'rms'  : np.zeros(nbins),
         },
-        'IB4' : {
-            'mean' : [6.7, 10.,  12.3,  5.4,  2.1],
-            'rms'  : [3.1, 2.6, 2.4, 1.7, 1.4],
-        },
-        'sim' : {
-            'mean' : [6,  9, 13,  5,  3],
-            'rms'  : [0,  0,  0,  0,  0],
-        },
+        'IB4' : input_data[obs]['IB4'],
+        'sim'              : FromFile(f"results.obs_{obs}.sim.reg_0.csv"),
         'qpu_lonoise_reg0' : FromFile(f"results.obs_{obs}.qpu_lonoise.reg_0.csv"),
         'qpu_lonoise_reg1' : FromFile(f"results.obs_{obs}.qpu_lonoise.reg_1.csv"),
         'qpu_hinoise_reg0' : FromFile(f"results.obs_{obs}.qpu_hinoise.reg_0.csv"),
@@ -76,6 +70,7 @@ unfolded_data = {
         #'hyb_reg0'         : FromFile(f"results.obs_{obs}.hyb.reg_0.csv"),
         #'hyb_reg1'         : FromFile(f"results.obs_{obs}.hyb.reg_1.csv"),
 }
+
 
 colors = ['black', 'red', 'gold', 'seagreen', 'blue','violet','cyan']
 #          'gold', 'cyan', 'violet', 'navyblue']
@@ -99,7 +94,7 @@ plt.step([0] + list(ibin),
 #plt.step(ibin, unfolded_data['pdata']['mean'], where='mid',
 #         label=labels['pdata'], color='black', linestyle='dashed')
 
-for i in range(1, 7):
+for i in range(1, n_methods+1):
     method = known_methods[i-1]
 
     print(method)
