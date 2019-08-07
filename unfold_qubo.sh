@@ -17,6 +17,7 @@ esac
 done
 
 csvfile="results.obs_${obs}.${backend}.reg_${reg}.csv" 
+rm -f ${csvfile}
 
 for i in $(seq ${nruns})
 do
