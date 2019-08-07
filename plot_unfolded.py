@@ -1,18 +1,82 @@
 #!/usr/bin/env python3
 
+import argparse
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-# import seaborn as sns
+
+from matplotlib import rc
+rc('font',**{'family':'serif','serif':['Palatino']})
+rc('text', usetex=True)
+rc('legend',**{'fontsize': 13})
+
+known_methods = [
+    'IB4',
+    'sim',
+    'qpu_lonoise_reg0',
+    'qpu_lonoise_reg1',
+    'qpu_hinoise_reg0',
+    'qpu_hinoise_reg1',
+]
+n_methods = len(known_methods)
+
+labels = {
+    'pdata'             : "True value",
+    'IB4'               : "D\'Agostini ItrBayes ($N_{itr}$=4)",
+    'sim'               : "QUBO (CPU, Neal)",
+    'qpu_lonoise_reg0'  : "QUBO (QPU, lower noise, $\lambda$=0)",
+    'qpu_lonoise_reg1'  : "QUBO (QPU, lower noise, $\lambda$=1)",
+    'qpu_hinoise_reg0'  : "QUBO (QPU, regular noise, $\lambda$=0)",
+    'qpu_hinoise_reg1'  : "QUBO (QPU, regular noise, $\lambda$=1)",
+    'hyb_reg0'          : "QUBO (Hybrid, $\lambda$=0)",
+    'hyb_reg1'          : "QUBO (Hybrid, $\lambda$=1)",
+}
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def FromFile( csv_file ):
+    data = np.genfromtxt( csv_file, delimiter=',' )
+
+    return {
+        'mean' : np.mean( data, axis=0 ),
+        'rms'  : np.std( data, axis=0)
+    }
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 from input_data import *
-from unfolded_data import *
 
-# sns.set(color_codes=True)
+parser = argparse.ArgumentParser("Quantum unfolding plotter")
+parser.add_argument('-o', '--observable', default='peak')
+args = parser.parse_args()
 
-n_methods = len(unf_data)
-# ibin = np.arange(n_methods)
-ibin = np.array([1, 2, 3, 4, 5])
+obs = args.observable
+
+z = input_data[obs]['pdata']
+nbins = z.shape[0]
+
+unfolded_data = {
+        'pdata' : {
+            'mean' : z,
+            'rms'  : np.zeros(nbins),
+        },
+        'IB4' : {
+            'mean' : [6.7, 10.,  12.3,  5.4,  2.1],
+            'rms'  : [3.1, 2.6, 2.4, 1.7, 1.4],
+        },
+        'sim' : {
+            'mean' : [6,  9, 13,  5,  3],
+            'rms'  : [0,  0,  0,  0,  0],
+        },
+        'qpu_lonoise_reg0' : FromFile(f"results.obs_{obs}.qpu_lonoise.reg_0.csv"),
+        'qpu_lonoise_reg1' : FromFile(f"results.obs_{obs}.qpu_lonoise.reg_1.csv"),
+        'qpu_hinoise_reg0' : FromFile(f"results.obs_{obs}.qpu_hinoise.reg_0.csv"),
+        'qpu_hinoise_reg1' : FromFile(f"results.obs_{obs}.qpu_hinoise.reg_1.csv"),
+        #'hyb_reg0'         : FromFile(f"results.obs_{obs}.hyb.reg_0.csv"),
+        #'hyb_reg1'         : FromFile(f"results.obs_{obs}.hyb.reg_1.csv"),
+}
+
 colors = ['black', 'red', 'gold', 'seagreen', 'blue','violet','cyan']
 #          'gold', 'cyan', 'violet', 'navyblue']
 # colors = ['black', 'salmon', 'royalblue', 'lightgreen', 'gold']
@@ -21,22 +85,42 @@ bar_width = 0.1
 
 fig, ax = plt.subplots(tight_layout=True, figsize=(10, 6))
 
-plt.step(ibin, unf_data[0], where='mid',
-         label=unf_data_labels[0], color='black', linestyle='dashed')
+ibin = np.arange(1,nbins+1) # position along the x-axis
+
+print("Truth")
+print(unfolded_data['pdata']['mean'])
+
+# First, plot truth-level distribution
+plt.step([0] + list(ibin), 
+        [unfolded_data['pdata']['mean'][0]]+list(unfolded_data['pdata']['mean']),
+        label=labels['pdata'], color='black', linestyle='dashed')
+
+
+#plt.step(ibin, unfolded_data['pdata']['mean'], where='mid',
+#         label=labels['pdata'], color='black', linestyle='dashed')
+
 for i in range(1, 7):
-    plt.errorbar(x=ibin+0.1*i-0.2, y=unf_data[i],
-                 yerr=unf_data_unc[i],
+    method = known_methods[i-1]
+
+    print(method)
+    print(unfolded_data[method]['mean'])
+    print(unfolded_data[method]['rms'])
+
+    plt.errorbar(x=ibin+0.1*i-0.8, 
+                 y=unfolded_data[method]['mean'],
+                 yerr=unfolded_data[method]['rms'],
                  color=colors[i],
                  fmt=markers[i],
                  ms=10,
-                 label=unf_data_labels[i])
-plt.xlim(0.5, 5.5)
+                 label=labels[method])
+
+plt.xlim(-0.2, 5.2)
 plt.legend()
 plt.ylabel("Unfolded")
 plt.xlabel("Bin")
-ax.xaxis.label.set_fontsize(12)
-ax.yaxis.label.set_fontsize(12)
-plt.xticks(fontsize=14)
+ax.xaxis.label.set_fontsize(14)
+ax.yaxis.label.set_fontsize(14)
+plt.xticks(np.arange(5)+0.5, [1, 2, 3, 4, 5], fontsize=14)
 plt.yticks(fontsize=14)
 plt.show()
-fig.savefig("unfolded.png")
+fig.savefig( f"unfolded_{obs}.pdf")

@@ -8,7 +8,6 @@ import numpy as np
 from scipy import optimize
 import matplotlib.pyplot as plt
 from decimal2binary import *
-from input_data import *
 
 # DWave stuff
 import dimod
@@ -19,19 +18,52 @@ import neal
 np.set_printoptions(precision=1, linewidth=500, suppress=True)
 
 parser = argparse.ArgumentParser("Quantum unfolding")
+parser.add_argument('-o', '--observable', default='peak')
 parser.add_argument('-l', '--lmbd', default=0.00)
 parser.add_argument('-g', '--gamma', default=1)
 parser.add_argument('-n', '--nreads', default=5000)
 parser.add_argument('-b', '--backend', default='sim')  # [qpu, sim, hyb]
+parser.add_argument('-f', '--file', default=None)
 parser.add_argument('-d', '--dry-run', action='store_true', default=False)
 args = parser.parse_args()
 
+obs = args.observable
 num_reads = int(args.nreads)
 dry_run = bool(args.dry_run)
 if dry_run:
     print("WARNING: dry run. There will be no results at the end.")
 
+
+x = input_data[obs]['truth']
+z = input_data[obs]['pdata']
+
+y = np.dot(R0, x) # signal @ reco-level
+d = np.dot(R0, z) # pseduo-data @ reco-level
+
+# Systematic uncertainties
+Nbins = x.shape[0]
+Nsyst = 2
+Nparams = Nbins + Nsyst
+
+# syst1 = overall shift
+# syst2 = shape change
+dy1 = [1, 1, 1, 1, 1]
+dy2 = [1, 2, 3, 2, 1]
+#dy1 = [1, 1, 1]
+#dy2 = [1, 2, 1]
+
+S = np.block([
+      [np.zeros([Nbins, Nbins]), np.zeros([Nbins,Nsyst])], 
+      [np.zeros([Nsyst, Nbins]), np.eye(Nsyst)]
+])
+
+# rectangular matrix
+T = np.vstack((dy1, dy2)).T
+R = np.block([[R0, T]])
+
+
 n = 4
+
 
 print("INFO: N bins:", Nbins)
 print("INFO: N syst:", Nsyst)

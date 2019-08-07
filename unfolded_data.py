@@ -1,5 +1,50 @@
 import numpy as np
 
+labels = {
+    'pdata'             : "True value",
+    'IB4'               : "D\'Agostini ItrBayes ($N_{itr}$=4)",
+    'sim'               : "QUBO (CPU, Neal)",
+    'qpu_lonoise_reg0'  : "QUBO (QPU, lower noise, $\lambda$=0)",
+    'qpu_lonoise_reg1'  : "QUBO (QPU, lower noise, $\lambda$=1)",
+    'qpu_hinoise_reg0'  : "QUBO (QPU, regular noise, $\lambda$=0)",
+    'qpu_hinoise_reg1'  : "QUBO (QPU, regular noise, $\lambda$=1)",
+    'hyb_reg0'          : "QUBO (Hybrid, $\lambda$=0)",
+    'hyb_reg1'          : "QUBO (Hybrid, $\lambda$=1)",
+}
+
+def FromFile( csv_file ):
+    data = np.genfromtxt( csv_file )
+    return {
+        'mean' : np.mean( data, axis=0 ),
+        'rms'  : np.rms( data, axis=0)
+    }
+
+unfolded_data = {
+    'peak' : {
+        'pdata' : {
+            'mean' : np.array( [6, 9, 13, 5, 3] ),
+            'rms'  : np.zeros( 5),
+        }
+        'IB4' : {
+            'mean' : [6.7, 10.,  12.3,  5.4,  2.1],
+            'rms'  : [3.1, 2.6, 2.4, 1.7, 1.4],
+        },
+        'sim' : {
+            'mean' : [6,  9, 13,  5,  3],
+            'rms'  : [0,  0,  0,  0,  0],
+        },
+        'qpu_lonoise_reg0' : FromFile("results.obs_peak.qpu_lonoise.reg_0.csv"),
+        'qpu_lonoise_reg1' : FromFile("results.obs_peak.qpu_lonoise.reg_1.csv"),
+        'qpu_hinoise_reg0' : FromFile("results.obs_peak.qpu_hinoise.reg_0.csv"),
+        'qpu_hinoise_reg1' : FromFile("results.obs_peak.qpu_hinoise.reg_1.csv"),
+        'hyb_reg0'         : FromFile("results.obs_peak.hyb.reg_0.csv"),
+        'hyb_reg1'         : FromFile("results.obs_peak.hyb.reg_1.csv"),
+    },
+    'falling' : {
+        'pdata' : np.array( [13, 9,  5, 3, 2] ),
+    }
+}
+
 # the numbers below have been obtained
 # by running the scripts on the QPU
 

@@ -21,18 +21,29 @@ from dwave_tools import get_embedding_with_short_chain, get_energy, anneal_sched
 np.set_printoptions(precision=1, linewidth=400, suppress=True)
 
 parser = argparse.ArgumentParser("Quantum unfolding")
+parser.add_argument('-o', '--observable', default='peak')
 parser.add_argument('-l', '--lmbd', default=0)
 parser.add_argument('-n', '--nreads', default=100)
 parser.add_argument('-b', '--backend', default='sim')  # [cpu, sim, qpu, hyb, qbs]
+parser.add_argument('-f', '--file', default=None)
 parser.add_argument('-d', '--dry-run', action='store_true', default=False)
 args = parser.parse_args()
 
+obs = args.observable
 num_reads = int(args.nreads)
 dry_run = bool(args.dry_run)
 if dry_run:
     print("WARNING: dry run. There will be no results at the end.")
 
+config_file = "dwave.config"
+
 from input_data import *
+
+x = input_data[obs]['truth']
+z = input_data[obs]['pdata']
+
+y = np.dot(R0, x) # signal @ reco-level
+d = np.dot(R0, z) # pseduo-data @ reco-level
 
 n = 4
 N = x.shape[0]
@@ -115,7 +126,7 @@ if args.backend == 'cpu':
 elif args.backend in ['qpu', 'hyb', 'qbs']:
     print("INFO: running on QPU")
 
-    hardware_sampler = DWaveSampler()
+    hardware_sampler = DWaveSampler(config_file=config_file)
     #C16 = dnx.chimera_graph(16)
     #P16 = dnx.pegasus_graph(16) # experimental
 
@@ -235,3 +246,7 @@ print("Hamming:", hamm)
 print("INFO: add the following line to the list of unfolded results")
 print(list(y), end='')
 print(', # E =', energy_bestfit, "chi2/dof = %.2f" % chi2dof)
+
+if not args.file == None:
+     f = open( args.file, 'a')
+     np.savetxt( f, y.reshape(1, y.shape[0]), fmt="%d", delimiter="," )

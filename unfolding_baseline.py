@@ -59,13 +59,19 @@ def array_to_th2(a, hname="res", htitle=";reco;truth", u=0.10):
 
 
 parser = argparse.ArgumentParser("Quantum unfolding")
+parser.add_argument('-o', '--observable', default='peak')
 parser.add_argument('-l', '--lmbd', default=0.00)
 parser.add_argument('-n', '--nreads', default=1000)
 args = parser.parse_args()
 
 num_reads = int(args.nreads)
+obs = args.observable
 
 #d = np.array(d, dtype='uint8')
+x = input_data[obs]['truth']
+z = input_data[obs]['pdata']
+y = np.dot(R0, x) # signal @ reco-level
+d = np.dot(R0, z) # pseduo-data @ reco-level
 
 print("INFO: Signal truth-level x:")
 print(x)
