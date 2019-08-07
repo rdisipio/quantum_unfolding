@@ -56,13 +56,61 @@ qpu_reads_reg = np.array([
     [4, 10, 12, 8, 2],  # E = -5356.0 chi2/dof = 0.75
 ])
 
+qpu_reads_hinoise_unreg = np.array( [
+[3, 12, 15, 4, 1], # E = -5362.0 chi2/dof = 1.09
+[2, 10, 14, 4, 3], # E = -5461.0 chi2/dof = 0.76
+[3, 9, 13, 4, 5], # E = -5456.0 chi2/dof = 0.76
+[2, 13, 11, 8, 0], # E = -5455.0 chi2/dof = 2.39
+[12, 8, 15, 5, 2], # E = -5394.0 chi2/dof = 1.69
+[5, 13, 11, 5, 3], # E = -5443.0 chi2/dof = 0.56
+[3, 11, 14, 7, 1], # E = -5402.0 chi2/dof = 1.04
+[3, 11, 14, 4, 2], # E = -5446.0 chi2/dof = 0.64
+[11, 8, 14, 8, 0], # E = -5370.0 chi2/dof = 2.29
+[8, 9, 15, 2, 5], # E = -5430.0 chi2/dof = 1.03
+[15, 2, 15, 4, 4], # E = -5467.0 chi2/dof = 4.95
+[13, 7, 15, 2, 7], # E = -5400.0 chi2/dof = 4.01
+[15, 4, 14, 4, 5], # E = -5451.0 chi2/dof = 4.47
+[11, 4, 14, 5, 1], # E = -5448.0 chi2/dof = 2.09
+[2, 10, 15, 2, 3], # E = -5402.0 chi2/dof = 1.22
+[4, 11, 13, 5, 2], # E = -5472.0 chi2/dof = 0.36
+[4, 13, 12, 7, 1], # E = -5434.0 chi2/dof = 1.16
+[3, 12, 15, 5, 4], # E = -5366.0 chi2/dof = 0.79
+[8, 10, 14, 2, 5], # E = -5413.0 chi2/dof = 1.00
+[3, 11, 15, 3, 5], # E = -5431.0 chi2/dof = 1.10
+])
+
+qpu_reads_hinoise_reg = np.array( [
+[2, 12, 13, 8, 1], # E = -5173.0 chi2/dof = 1.70
+[2, 10, 12, 6, 2], # E = -5320.0 chi2/dof = 0.85
+[5, 12, 14, 5, 1], # E = -5208.0 chi2/dof = 0.64
+[8, 13, 12, 4, 0], # E = -5144.0 chi2/dof = 1.43
+[4, 13, 11, 4, 1], # E = -5191.0 chi2/dof = 1.07
+[7, 13, 12, 5, 2], # E = -5284.0 chi2/dof = 0.59
+[5, 10, 13, 8, 0], # E = -5282.0 chi2/dof = 1.27
+[7, 13, 13, 5, 3], # E = -5225.0 chi2/dof = 0.49
+[3, 11, 14, 6, 3], # E = -5231.0 chi2/dof = 0.56
+[3, 12, 13, 7, 1], # E = -5257.0 chi2/dof = 1.16
+[4, 13, 12, 5, 0], # E = -5213.0 chi2/dof = 1.38
+[4, 12, 13, 5, 1], # E = -5268.0 chi2/dof = 0.75
+[7, 12, 11, 7, 0], # E = -5319.0 chi2/dof = 1.32
+[6, 12, 14, 5, 3], # E = -5203.0 chi2/dof = 0.27
+[6, 13, 11, 3, 1], # E = -5126.0 chi2/dof = 1.05
+[10, 12, 12, 6, 2], # E = -5240.0 chi2/dof = 1.07
+[7, 12, 13, 5, 0], # E = -5231.0 chi2/dof = 1.04
+[4, 12, 15, 5, 1], # E = -5096.0 chi2/dof = 0.83
+[6, 11, 12, 5, 0], # E = -5309.0 chi2/dof = 0.88
+[2, 10, 13, 8, 3], # E = -5237.0 chi2/dof = 1.14
+])
+
 unf_data = [
     [6,  9, 13,  5,  3],  # true
     #[6.67, 9.95, 12.29, 5.36, 2.13],  # IB4
     [6.7, 10.,  12.3,  5.4,  2.1],  # IB4
     [6,  9, 13,  5,  3],  # neal
     [0, 0, 0, 0, 0],  # palceholder1
-    [0, 0, 0, 0, 0]  # palceholder2
+    [0, 0, 0, 0, 0],  # palceholder2
+    [0, 0, 0, 0, 0],  # palceholder3
+    [0, 0, 0, 0, 0],  # palceholder4
 ]
 
 unf_data_unc = [
@@ -72,20 +120,27 @@ unf_data_unc = [
     [0., 0., 0., 0., 0],  # neal
     [0, 0, 0, 0, 0],  # palceholder1
     [0, 0, 0, 0, 0],  # palceholder2
+    [0, 0, 0, 0, 0],  # palceholder3
+    [0, 0, 0, 0, 0],  # palceholder4
 ]
 
 unf_data[3] = np.mean(qpu_reads_unreg, axis=0)
 unf_data_unc[3] = np.std(qpu_reads_unreg, axis=0)
 unf_data[4] = np.mean(qpu_reads_reg, axis=0)
 unf_data_unc[4] = np.std(qpu_reads_reg, axis=0)
-
+unf_data[5] = np.mean(qpu_reads_hinoise_unreg, axis=0)
+unf_data_unc[5] = np.std(qpu_reads_hinoise_unreg, axis=0)
+unf_data[6] = np.mean(qpu_reads_hinoise_reg, axis=0)
+unf_data_unc[6] = np.std(qpu_reads_hinoise_reg, axis=0)
 
 unf_data_labels = [
     'True value',
     'D\'Agostini ItrBayes ($N_{itr}$=4)',
     'QUBO (CPU, neal)',
-    'QUBO (QPU, $\lambda$=0)',
-    'QUBO (QPU, $\lambda$=1)'
+    'QUBO (QPU, lower noise, $\lambda$=0)',
+    'QUBO (QPU, lower noise, $\lambda$=1)',
+    'QUBO (QPU, regular noise, $\lambda$=0)',
+    'QUBO (QPU, regular noise, $\lambda$=1)',
 ]
 
 #################

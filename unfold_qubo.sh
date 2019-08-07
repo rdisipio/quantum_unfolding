@@ -1,6 +1,6 @@
 #!/bin/bash
 
-nruns=10
+nruns=20
 reg=0
 backend=qpu
 

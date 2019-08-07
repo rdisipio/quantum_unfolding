@@ -13,17 +13,17 @@ from unfolded_data import *
 n_methods = len(unf_data)
 # ibin = np.arange(n_methods)
 ibin = np.array([1, 2, 3, 4, 5])
-colors = ['black', 'red', 'gold', 'seagreen', 'blue']
+colors = ['black', 'red', 'gold', 'seagreen', 'blue','violet','cyan']
 #          'gold', 'cyan', 'violet', 'navyblue']
 # colors = ['black', 'salmon', 'royalblue', 'lightgreen', 'gold']
-markers = ['o', 'v', '^', 'D', 'o']
+markers = ['o', 'v', '^', 'D', 'o', 'D', 'o']
 bar_width = 0.1
 
 fig, ax = plt.subplots(tight_layout=True, figsize=(10, 6))
 
 plt.step(ibin, unf_data[0], where='mid',
          label=unf_data_labels[0], color='black', linestyle='dashed')
-for i in range(1, 5):
+for i in range(1, 7):
     plt.errorbar(x=ibin+0.1*i-0.2, y=unf_data[i],
                  yerr=unf_data_unc[i],
                  color=colors[i],
