@@ -35,3 +35,6 @@ R0 = np.array( [
       ] )
 
 #R0 = np.diag([2., 2., 2.])
+
+# strength of systematics in pseudo-data
+sigma_syst = [1,2]

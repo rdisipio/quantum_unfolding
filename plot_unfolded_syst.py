@@ -1,18 +1,73 @@
 #!/usr/bin/env python3
 
+import argparse
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-# import seaborn as sns
+
+from matplotlib import rc
+rc('font',**{'family':'serif','serif':['Palatino']})
+rc('text', usetex=True)
+rc('legend',**{'fontsize': 13})
+
+parser = argparse.ArgumentParser("Quantum unfolding plotter")
+parser.add_argument('-o', '--observable', default='peak')
+parser.add_argument('-e', '--encoding', default=4)
+args = parser.parse_args()
+
+nbits = int(args.encoding)
+obs = args.observable
+
+known_methods = [
+    #'IB4',
+    'sim',
+    'qpu_lonoise_reg0_4bits',
+    'qpu_lonoise_reg0_8bits',
+]
+n_methods = len(known_methods)
+
+labels = {
+    'pdata'             : "True value",
+    #'IB4'               : "D\'Agostini ItrBayes ($N_{itr}$=4)",
+    'sim'               : "QUBO (CPU, Neal)",
+    'qpu_lonoise_reg0_4bits'  : "QUBO (QPU, lower noise, $\lambda$=0, $\gamma$=1, 4-bits)",
+    'qpu_lonoise_reg0_8bits'  : "QUBO (QPU, lower noise, $\lambda$=0, $\gamma$=1, 8-bits)",
+    #'hyb_reg0'          : "QUBO (Hybrid, $\lambda$=0)",
+    #'hyb_reg1'          : "QUBO (Hybrid, $\lambda$=1)",
+}
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def FromFile( csv_file ):
+    data = np.genfromtxt( csv_file, delimiter=',' )
+
+    return {
+        'mean' : np.mean( data, axis=0 ),
+        'rms'  : np.std( data, axis=0)
+    }
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 from input_data import *
-from unfolded_data import *
 
-# sns.set(color_codes=True)
+#z = np.hstack( [input_data[obs]['pdata'], sigma_syst] )
+z = input_data[obs]['pdata']
+nbins = input_data[obs]['pdata'].shape[0]
 
-n_methods = len(unf_data_syst)
-print("INFO: plotting %i histograms:" % n_methods)
-print(unf_data_labels[:n_methods])
+unfolded_data = {
+        'pdata' : {
+            'mean' : z,
+            'rms'  : np.zeros(nbins),
+        },
+        #'IB4' : input_data[obs]['IB4'],
+        'sim'              : FromFile(f"results_syst.obs_{obs}.sim.reg_0.gamma_1.4bits.csv"),
+        'qpu_lonoise_reg0_4bits' : FromFile(f"results_syst.obs_{obs}.qpu_lonoise.reg_0.gamma_1.4bits.csv"),
+        'qpu_lonoise_reg0_8bits' : FromFile(f"results_syst.obs_{obs}.qpu_lonoise.reg_0.gamma_1.8bits.csv"),
+        
+        #'hyb_reg0'         : FromFile(f"results.obs_{obs}.hyb.reg_0.csv"),
+        #'hyb_reg1'         : FromFile(f"results.obs_{obs}.hyb.reg_1.csv"),
+}
 
 Nbins = 5
 Nsyst = 2
@@ -36,32 +91,38 @@ ax_main = plt.axes([left, bottom, width, height])
 ax_syst = plt.axes([left+width+padding, bottom,
                     1.0-width-right, height])
 
-ax_main.step(ibin, unf_data_syst[0][:Nbins], where='mid',
-             label=unf_data_labels[0], color='black', linestyle='dashed')
+ax_main.step([0] + list(ibin), 
+        [unfolded_data['pdata']['mean'][0]]+list(unfolded_data['pdata']['mean']),
+        label=labels['pdata'], color='black', linestyle='dashed')
 
-for i in range(1, n_methods):
-    y = unf_data_syst[i][:Nbins]
-    dy = unf_data_syst_unc[i][:Nbins]
-    print(y)
-    print(dy)
-    ax_main.errorbar(x=ibin+0.1*i-0.2,
-                     y=y,
-                     yerr=dy,
-                     color=colors[i],
-                     fmt=markers[i],
-                     ms=10,
-                     label=unf_data_labels[i])
-ax_main.set_xlim(0.5, 5.5)
+
+for i in range(1, n_methods+1):
+    method = known_methods[i-1]
+
+    print(method)
+    print(unfolded_data[method]['mean'])
+    print(unfolded_data[method]['rms'])
+
+    plt.errorbar(x=ibin+0.1*i-0.8, 
+                 y=unfolded_data[method]['mean'][:Nbins],
+                 yerr=unfolded_data[method]['rms'][:Nbins],
+                 color=colors[i],
+                 fmt=markers[i],
+                 ms=10,
+                 label=labels[method])
+
+plt.xlim(-0.2, 5.2)
 ax_main.legend()
 ax_main.set_ylabel("Unfolded")
 ax_main.set_xlabel("Bin")
 ax_main.xaxis.label.set_fontsize(14)
 ax_main.yaxis.label.set_fontsize(14)
+#ax_main.xticks(np.arange(5)+0.5, [1, 2, 3, 4, 5], fontsize=14)
 ax_main.tick_params(labelsize=14)
 
 for isyst in range(Nsyst):
     l_length = 0.2
-    x = unf_data_syst[0][Nbins+isyst]
+    x = sigma_syst[isyst]
     ymin = (1/float(Nsyst))*(0.5+isyst)-l_length
     ymax = (1/float(Nsyst))*(0.5+isyst)+l_length
     print(x, ymin, ymax)
@@ -72,9 +133,11 @@ for isyst in range(Nsyst):
                     linestyle='dashed')
 
     for imethod in range(1, n_methods):
-        x = unf_data_syst[imethod][Nbins+isyst]
+        method = known_methods[i-1]
+
+        x = unfolded_data[method]['mean'][Nbins+isyst]
         y = isyst - 0.05*imethod + 0.1
-        dx = unf_data_syst_unc[imethod][Nbins+isyst]
+        dx = unfolded_data[method]['rms'][Nbins+isyst]
 
         ax_syst.errorbar(x,
                          y,
@@ -82,7 +145,7 @@ for isyst in range(Nsyst):
                          color=colors[imethod],
                          fmt=markers[imethod],
                          ms=10,
-                         label=unf_data_labels[imethod])
+                         label=labels[method])
 
 
 # ax_syst.get_yaxis().set_visible(False)

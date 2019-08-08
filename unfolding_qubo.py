@@ -143,7 +143,7 @@ elif args.backend in ['qpu', 'hyb', 'qbs', 'qpu_hinoise', 'qpu_lonoise']:
     print("INFO: finding optimal minor embedding...")
     ntries = 5 if n==4 else 10
     embedding = get_embedding_with_short_chain(S,
-                                               tries=5,
+                                               tries=ntries,
                                                processor=hardware_sampler.edgelist,
                                                verbose=True)
     if embedding == None:

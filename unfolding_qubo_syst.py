@@ -23,6 +23,7 @@ parser.add_argument('-l', '--lmbd', default=0.00)
 parser.add_argument('-g', '--gamma', default=1)
 parser.add_argument('-n', '--nreads', default=5000)
 parser.add_argument('-b', '--backend', default='sim')  # [qpu, sim, hyb]
+parser.add_argument('-e', '--encoding', default=4)
 parser.add_argument('-f', '--file', default=None)
 parser.add_argument('-d', '--dry-run', action='store_true', default=False)
 args = parser.parse_args()
@@ -33,6 +34,7 @@ dry_run = bool(args.dry_run)
 if dry_run:
     print("WARNING: dry run. There will be no results at the end.")
 
+from input_data import *
 
 x = input_data[obs]['truth']
 z = input_data[obs]['pdata']
@@ -62,8 +64,7 @@ T = np.vstack((dy1, dy2)).T
 R = np.block([[R0, T]])
 
 
-n = 4
-
+n = int( args.encoding )
 
 print("INFO: N bins:", Nbins)
 print("INFO: N syst:", Nsyst)
@@ -83,10 +84,10 @@ D = np.block([[D,                        np.zeros([Nbins, Nsyst])],
               ])
 
 # strength of systematics in pseudo-data
-s = [1,1]
+sigma_syst = [1,2]
 
 x = np.hstack((x, np.zeros(Nsyst)))
-z = np.hstack((z, s))
+z = np.hstack((z, sigma_syst))
 d = np.dot(R, z)
 # y = np.dot(R, x)
 
@@ -177,14 +178,15 @@ if args.backend == 'cpu':
     if not dry_run:
         result = dimod.ExactSolver().sample(bqm)
 
-elif args.backend in [ 'qpu', 'hyb' ]:
+elif args.backend in [ 'qpu', 'hyb', 'qpu_hinoise', 'qpu_lonoise' ]:
     print("INFO: running on QPU")
 
     hardware_sampler = DWaveSampler()
 
     print("INFO: finding optimal minor embedding...")
+    ntries = 10 if n==4 else 20
     embedding = get_embedding_with_short_chain(J,
-                                               tries=5,
+                                               tries=ntries,
                                                processor=hardware_sampler.edgelist,
                                                verbose=True)
     if embedding == None:
@@ -205,7 +207,7 @@ elif args.backend in [ 'qpu', 'hyb' ]:
 
     print("INFO: annealing (n_reads=%i) ..." % num_reads)
     if not dry_run:
-      if args.backend == 'qpu':
+      if args.backend in ['qpu', 'qpu_hinoise', 'qpu_lonoise']:
         results = sampler.sample(bqm, **solver_parameters).aggregate()
       elif args.backend == 'hyb':
         import hybrid
@@ -286,3 +288,8 @@ print("Hamming:", hamm)
 print("INFO: add the following line to the list of unfolded results")
 print(list(y), end='')
 print(', # E =', energy_bestfit, "chi2/dof = %.2f" % chi2dof)
+
+
+if not args.file == None:
+     f = open( args.file, 'a')
+     np.savetxt( f, y.reshape(1, y.shape[0]), fmt="%d", delimiter="," )
