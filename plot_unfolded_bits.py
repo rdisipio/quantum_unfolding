@@ -12,12 +12,12 @@ rc('text', usetex=True)
 rc('legend',**{'fontsize': 13})
 
 known_methods = [
-    'IB4',
-    'sim',
+    #'IB4',
+    #'sim',
     'qpu_4bits_reg0',
-    'qpu_4bits_reg1',
+    #'qpu_4bits_reg1',
     'qpu_8bits_reg0',
-    'qpu_8bits_reg1',
+    #'qpu_8bits_reg1',
 ]
 n_methods = len(known_methods)
 
@@ -60,19 +60,20 @@ unfolded_data = {
             'mean' : z,
             'rms'  : np.zeros(nbins),
         },
-        'IB4' : input_data[obs]['IB4'],
-        'sim'              : FromFile(f"results.obs_{obs}.sim.reg_0.csv"),
+        #'IB4' : input_data[obs]['IB4'],
+        #'sim'            : FromFile(f"results.obs_{obs}.sim.reg_0.4bits.csv"),
         'qpu_4bits_reg0' : FromFile(f"results.obs_{obs}.qpu_lonoise.reg_0.4bits.csv"),
-        'qpu_4bits_reg1' : FromFile(f"results.obs_{obs}.qpu_lonoise.reg_1.4bits.csv"),
+        #'qpu_4bits_reg1' : FromFile(f"results.obs_{obs}.qpu_lonoise.reg_1.4bits.csv"),
         'qpu_8bits_reg0' : FromFile(f"results.obs_{obs}.qpu_lonoise.reg_0.8bits.csv"),
-        'qpu_8bits_reg1' : FromFile(f"results.obs_{obs}.qpu_lonoise.reg_1.8bits.csv"),
+        #'qpu_8bits_reg1' : FromFile(f"results.obs_{obs}.qpu_lonoise.reg_1.8bits.csv"),
 }
 
-
-colors = ['black', 'red', 'gold', 'seagreen', 'blue','violet','cyan']
+colors = ['black', 'green', 'red' ]
+markers = [ 'D', 'o' ]
+#colors = ['black', 'red', 'gold', 'seagreen', 'blue','violet','cyan']
 #          'gold', 'cyan', 'violet', 'navyblue']
 # colors = ['black', 'salmon', 'royalblue', 'lightgreen', 'gold']
-markers = ['o', 'v', '^', 'D', 'o', 'D', 'o']
+#markers = ['o', 'v', '^', 'D', 'o', 'D', 'o']
 bar_width = 0.1
 
 fig, ax = plt.subplots(tight_layout=True, figsize=(10, 6))
@@ -102,7 +103,7 @@ for i in range(1, n_methods+1):
                  y=unfolded_data[method]['mean'],
                  yerr=unfolded_data[method]['rms'],
                  color=colors[i],
-                 fmt=markers[i],
+                 fmt=markers[i-1],
                  ms=10,
                  label=labels[method])
 
