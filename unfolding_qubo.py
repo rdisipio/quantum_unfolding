@@ -25,6 +25,7 @@ parser.add_argument('-o', '--observable', default='peak')
 parser.add_argument('-l', '--lmbd', default=0)
 parser.add_argument('-n', '--nreads', default=100)
 parser.add_argument('-b', '--backend', default='sim')  # [cpu, sim, qpu, hyb, qbs]
+parser.add_argument('-e', '--encoding', default=4)
 parser.add_argument('-f', '--file', default=None)
 parser.add_argument('-d', '--dry-run', action='store_true', default=False)
 args = parser.parse_args()
@@ -54,7 +55,7 @@ z = input_data[obs]['pdata']
 y = np.dot(R0, x) # signal @ reco-level
 d = np.dot(R0, z) # pseduo-data @ reco-level
 
-n = 4
+n = int( args.encoding )
 N = x.shape[0]
 
 print("INFO: N bins:", N)
