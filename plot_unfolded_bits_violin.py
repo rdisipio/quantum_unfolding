@@ -4,7 +4,12 @@ import argparse
 
 import numpy as np
 import pandas as pd
+import seaborn as sns
 import matplotlib.pyplot as plt
+import pandas as pd
+
+sns.set()
+sns.set_style("white")
 
 from matplotlib import rc
 rc('font',**{'family':'serif','serif':['Palatino']})
@@ -14,10 +19,10 @@ rc('legend',**{'fontsize': 13})
 known_methods = [
     #'IB4',
     #'sim',
-    'qpu_4bits_reg0',
-    #'qpu_4bits_reg1',
-    'qpu_8bits_reg0',
-    #'qpu_8bits_reg1',
+    'lower noise 4bits',
+    'lower noise 8bits',
+    'regular noise 4bits',
+    'regular noise 8bits',
 ]
 n_methods = len(known_methods)
 
@@ -25,11 +30,10 @@ labels = {
     'pdata'             : "True value",
     'IB4'               : "D\'Agostini ItrBayes ($N_{itr}$=4)",
     'sim'               : "QUBO (CPU, Neal)",
-    'qpu_4bits_reg0'  : "QUBO (QPU, 4 bits enc, $\lambda$=0)",
-    'qpu_4bits_reg1'  : "QUBO (QPU, 4 bits enc, $\lambda$=1)",
-    'qpu_8bits_reg0'  : "QUBO (QPU, 8 bits enc, $\lambda$=0)",
-    'qpu_8bits_reg1'  : "QUBO (QPU, 8 bits enc, $\lambda$=1)",
-  
+    'lower noise 4bits'  : "QUBO (QPU, lower noise, 4 bits enc)",
+    'lower noise 8bits'  : "QUBO (QPU, lower noise, 8 bits enc)",
+    'regular noise 4 bits'  : "QUBO (QPU, regular noise, 4 bits enc)",
+    'regular noise 8 bits'  : "QUBO (QPU, regular noise, 8 bits enc)",
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -37,11 +41,9 @@ labels = {
 def FromFile( csv_file ):
     data = np.genfromtxt( csv_file, delimiter=',' )
 
-    return {
-        'data' : data,
-        'mean' : np.mean( data, axis=0 ),
-        'rms'  : np.std( data, axis=0)
-    }
+    data = np.swapaxes(data,0,1)
+
+    return data
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -56,48 +58,67 @@ obs = args.observable
 z = input_data[obs]['pdata']
 nbins = z.shape[0]
 
-unfolded_data = {
-        'pdata' : {
+pdata = {
             'mean' : z,
             'rms'  : np.zeros(nbins),
-        },
-        #'IB4' : input_data[obs]['IB4'],
-        #'sim'            : FromFile(f"results.obs_{obs}.sim.reg_0.4bits.csv"),
-        'qpu_4bits_reg0' : FromFile(f"results.obs_{obs}.qpu_lonoise.reg_0.4bits.csv"),
-        #'qpu_4bits_reg1' : FromFile(f"results.obs_{obs}.qpu_lonoise.reg_1.4bits.csv"),
-        'qpu_8bits_reg0' : FromFile(f"results.obs_{obs}.qpu_lonoise.reg_0.8bits.csv"),
-        #'qpu_8bits_reg1' : FromFile(f"results.obs_{obs}.qpu_lonoise.reg_1.8bits.csv"),
+        }
+    
+unfolded_data = {
+        'lower noise 4bits' : FromFile(f"results.obs_{obs}.qpu_lonoise.reg_0.4bits.csv"),
+        'lower noise 8bits' : FromFile(f"results.obs_{obs}.qpu_lonoise.reg_0.8bits.csv"),
+        'regular noise 4bits' : FromFile(f"results.obs_{obs}.qpu_hinoise.reg_0.4bits.csv"),
+        'regular noise 8bits' : FromFile(f"results.obs_{obs}.qpu_hinoise.reg_0.8bits.csv"),
 }
 
-colors = ['black', 'green', 'red' ]
-markers = [ 'D', 'o' ]
-#colors = ['black', 'red', 'gold', 'seagreen', 'blue','violet','cyan']
-#          'gold', 'cyan', 'violet', 'navyblue']
-# colors = ['black', 'salmon', 'royalblue', 'lightgreen', 'gold']
-#markers = ['o', 'v', '^', 'D', 'o', 'D', 'o']
-bar_width = 0.1
+nreads = 20
+nbins = 5
+raw_data = []
+for method in known_methods:
+    for iread in range(nreads):
+        for ibin in range(nbins):
+            raw_data.append( {
+                'method' : method,
+                'bin'    : (ibin+1),
+                'unf'    : unfolded_data[method][ibin][iread],
+            } )
+
+df = pd.DataFrame.from_dict(raw_data)
+    
+
+colors = {
+    'pdata' : 'black',
+    'lower noise 4bits' : 'green',
+    'lower noise 8bits' : "lightgreen",
+    'regular noise 4bits' : 'red',
+    'regular noise 8bits' : 'pink'
+}
 
 fig, ax = plt.subplots(tight_layout=True, figsize=(10, 6))
 
-ibin = np.arange(1,nbins+1) # position along the x-axis
+ibin = np.arange(-0.5,nbins+0.5) # position along the x-axis
 
-print("Truth")
-print(unfolded_data['pdata']['mean'])
+# First, plot truth-level distribution
+plt.step( list(ibin), 
+            [pdata['mean'][0]]+list(pdata['mean']),
+            label=labels['pdata'], color='black', linestyle='dashed')
+
+sns.boxplot( x='bin', y='unf', 
+                hue='method', palette=colors,
+                data=df,
+                orient='v',
+                width=0.4,
+                )
 
 
-#plt.step(ibin, unfolded_data['pdata']['mean'], where='mid',
-#         label=labels['pdata'], color='black', linestyle='dashed')
+plt.xlim(-1, 5)
 
-for i in range(1, n_methods+1):
-    method = known_methods[i-1]
-
-    print(method)
-    print(unfolded_data[method]['mean'])
-    print(unfolded_data[method]['rms'])
-
-    plt.violinplot( unfolded_data[method]['data'],
-        showmeans=False, showextrema=False, showmedians=True)
-
+plt.legend()
+plt.ylabel("Unfolded")
+plt.xlabel("Bin")
+ax.xaxis.label.set_fontsize(14)
+ax.yaxis.label.set_fontsize(14)
+plt.yticks(fontsize=14)
+plt.xticks(fontsize=14)
 
 plt.show()
 fig.savefig( f"unfolded_{obs}_nbits_violin.pdf")

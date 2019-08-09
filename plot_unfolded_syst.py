@@ -21,18 +21,20 @@ obs = args.observable
 
 known_methods = [
     #'IB4',
-    'sim',
-    'qpu_lonoise_reg0_4bits',
-    'qpu_lonoise_reg0_8bits',
+    'sim_gamma0',
+    'sim_gamma1',
+    'qpu_lonoise_reg0_gamma0',
+    'qpu_lonoise_reg0_gamma1',
 ]
 n_methods = len(known_methods)
 
 labels = {
     'pdata'             : "True value",
     #'IB4'               : "D\'Agostini ItrBayes ($N_{itr}$=4)",
-    'sim'               : "QUBO (CPU, Neal)",
-    'qpu_lonoise_reg0_4bits'  : "QUBO (QPU, lower noise, $\lambda$=0, $\gamma$=1, 4-bits)",
-    'qpu_lonoise_reg0_8bits'  : "QUBO (QPU, lower noise, $\lambda$=0, $\gamma$=1, 8-bits)",
+    'sim_gamma0'               : "QUBO (CPU, Neal, $\gamma$=0)",
+    'sim_gamma1'               : "QUBO (CPU, Neal, $\gamma$=1)",
+    'qpu_lonoise_reg0_gamma0'  : "QUBO (QPU, lower noise, $\gamma$=0)",
+    'qpu_lonoise_reg0_gamma1'  : "QUBO (QPU, lower noise, $\gamma$=1)",
     #'hyb_reg0'          : "QUBO (Hybrid, $\lambda$=0)",
     #'hyb_reg1'          : "QUBO (Hybrid, $\lambda$=1)",
 }
@@ -61,9 +63,10 @@ unfolded_data = {
             'rms'  : np.zeros(nbins),
         },
         #'IB4' : input_data[obs]['IB4'],
-        'sim'              : FromFile(f"results_syst.obs_{obs}.sim.reg_0.gamma_1.4bits.csv"),
-        'qpu_lonoise_reg0_4bits' : FromFile(f"results_syst.obs_{obs}.qpu_lonoise.reg_0.gamma_1.4bits.csv"),
-        'qpu_lonoise_reg0_8bits' : FromFile(f"results_syst.obs_{obs}.qpu_lonoise.reg_0.gamma_1.8bits.csv"),
+        'sim_gamma0'              : FromFile(f"results_syst.obs_{obs}.sim.reg_0.gamma_0.4bits.csv"),
+        'sim_gamma1'              : FromFile(f"results_syst.obs_{obs}.sim.reg_0.gamma_1.4bits.csv"),
+        'qpu_lonoise_reg0_gamma0' : FromFile(f"results_syst.obs_{obs}.qpu_lonoise.reg_0.gamma_0.4bits.csv"),
+        'qpu_lonoise_reg0_gamma1' : FromFile(f"results_syst.obs_{obs}.qpu_lonoise.reg_0.gamma_1.4bits.csv"),
         
         #'hyb_reg0'         : FromFile(f"results.obs_{obs}.hyb.reg_0.csv"),
         #'hyb_reg1'         : FromFile(f"results.obs_{obs}.hyb.reg_1.csv"),
@@ -71,7 +74,6 @@ unfolded_data = {
 
 Nbins = 5
 Nsyst = 2
-ibin = np.arange(1, Nbins+1)
 
 colors = ['black', 'red', 'gold', 'seagreen', 'blue']
 #          'gold', 'cyan', 'violet', 'navyblue']
@@ -91,10 +93,11 @@ ax_main = plt.axes([left, bottom, width, height])
 ax_syst = plt.axes([left+width+padding, bottom,
                     1.0-width-right, height])
 
+ibin = np.arange(1,Nbins+1) # position along the x-axis
+
 ax_main.step([0] + list(ibin), 
         [unfolded_data['pdata']['mean'][0]]+list(unfolded_data['pdata']['mean']),
         label=labels['pdata'], color='black', linestyle='dashed')
-
 
 for i in range(1, n_methods+1):
     method = known_methods[i-1]
@@ -103,7 +106,7 @@ for i in range(1, n_methods+1):
     print(unfolded_data[method]['mean'])
     print(unfolded_data[method]['rms'])
 
-    plt.errorbar(x=ibin+0.1*i-0.8, 
+    ax_main.errorbar(x=ibin+0.1*i-0.8, 
                  y=unfolded_data[method]['mean'][:Nbins],
                  yerr=unfolded_data[method]['rms'][:Nbins],
                  color=colors[i],
@@ -111,13 +114,14 @@ for i in range(1, n_methods+1):
                  ms=10,
                  label=labels[method])
 
-plt.xlim(-0.2, 5.2)
+ax_main.set_xlim(-0.2, 5.2)
 ax_main.legend()
 ax_main.set_ylabel("Unfolded")
 ax_main.set_xlabel("Bin")
 ax_main.xaxis.label.set_fontsize(14)
 ax_main.yaxis.label.set_fontsize(14)
-#ax_main.xticks(np.arange(5)+0.5, [1, 2, 3, 4, 5], fontsize=14)
+ax_main.set_xticks(np.arange(5)+0.5)
+ax_main.set_xticklabels( [1, 2, 3, 4, 5] )
 ax_main.tick_params(labelsize=14)
 
 for isyst in range(Nsyst):
@@ -132,13 +136,16 @@ for isyst in range(Nsyst):
                     color='black',
                     linestyle='dashed')
 
-    for imethod in range(1, n_methods):
-        method = known_methods[i-1]
+for imethod in range(1, n_methods+1):
+    method = known_methods[imethod-1]
+    print(method, unfolded_data[method]['mean'][Nbins:])
 
-        x = unfolded_data[method]['mean'][Nbins+isyst]
+    for isyst in range(Nsyst):
+
+        x = unfolded_data[method]['mean'][Nbins:][isyst]
         y = isyst - 0.05*imethod + 0.1
-        dx = unfolded_data[method]['rms'][Nbins+isyst]
-
+        dx = unfolded_data[method]['rms'][Nbins:][isyst]
+        #print(imethod,x,y,dx)
         ax_syst.errorbar(x,
                          y,
                          xerr=dx,
@@ -149,14 +156,14 @@ for isyst in range(Nsyst):
 
 
 # ax_syst.get_yaxis().set_visible(False)
-ax_syst.set_xlim(-0.5, 5.5)
+ax_syst.set_xlim(-0.5, 4.5)
 ax_syst.set_ylim(-0.5, Nsyst-0.5)
 ax_syst.xaxis.label.set_fontsize(14)
 ax_syst.set_xlabel("$\lambda$")
 ax_syst.tick_params(labelsize=14)
 ax_syst.set_yticks(np.arange(Nsyst))
-ax_syst.set_yticklabels(["syst1", "syst2"])
+ax_syst.set_yticklabels(["norm", "shape"])
 
 
 plt.show()
-fig.savefig("unfolded_syst.png")
+fig.savefig(f"unfolded_{obs}_syst.pdf")
