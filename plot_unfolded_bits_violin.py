@@ -102,11 +102,13 @@ plt.step( list(ibin),
             [pdata['mean'][0]]+list(pdata['mean']),
             label=labels['pdata'], color='black', linestyle='dashed')
 
-sns.boxplot( x='bin', y='unf', 
+sns.stripplot( x='bin', y='unf', 
                 hue='method', palette=colors,
                 data=df,
                 orient='v',
-                width=0.4,
+                dodge=True,
+                #jitter=True,
+                #width=0.4,
                 )
 
 

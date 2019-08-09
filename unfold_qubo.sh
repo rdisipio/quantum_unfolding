@@ -3,7 +3,7 @@
 obs="peak"
 nruns=20
 reg=0
-backend=qpu
+backend=qpu_lonoise
 enc=4 #nbits
 
 while [ $# -gt 1 ] ; do
