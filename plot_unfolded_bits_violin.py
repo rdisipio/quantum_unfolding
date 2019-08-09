@@ -92,6 +92,12 @@ colors = {
     'regular noise 4bits' : 'red',
     'regular noise 8bits' : 'pink'
 }
+grayscale = {
+    'lower noise 4bits' : 'lightgray',
+    'lower noise 8bits' : "lightgray",
+    'regular noise 4bits' : 'lightgray',
+    'regular noise 8bits' : 'lightgray'
+}
 
 fig, ax = plt.subplots(tight_layout=True, figsize=(10, 6))
 
@@ -102,7 +108,14 @@ plt.step( list(ibin),
             [pdata['mean'][0]]+list(pdata['mean']),
             label=labels['pdata'], color='black', linestyle='dashed')
 
-sns.stripplot( x='bin', y='unf', 
+sns.boxplot( x='bin', y='unf',
+            hue='method',
+             palette=grayscale,
+             data=df,
+              orient='v' 
+        )
+#stripplot
+sns.swarmplot( x='bin', y='unf', 
                 hue='method', palette=colors,
                 data=df,
                 orient='v',
@@ -111,10 +124,14 @@ sns.stripplot( x='bin', y='unf',
                 #width=0.4,
                 )
 
+handles, labels = ax.get_legend_handles_labels()
+new_handles = [ handles[0], handles[5], handles[6], handles[7], handles[8] ]
+new_labels  = [ labels[0], labels[5], labels[6], labels[7], labels[8] ]
+plt.legend(new_handles, new_labels)
 
 plt.xlim(-1, 5)
 
-plt.legend()
+#plt.legend()
 plt.ylabel("Unfolded")
 plt.xlabel("Bin")
 ax.xaxis.label.set_fontsize(14)
