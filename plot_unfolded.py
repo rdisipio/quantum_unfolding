@@ -64,13 +64,13 @@ unfolded_data = {
             'rms'  : np.zeros(nbins),
         },
         'IB4' : input_data[obs]['IB4'],
-        'sim'              : FromFile(f"results.obs_{obs}.sim.reg_0.{nbits}bits.csv"),
-        'qpu_lonoise_reg0' : FromFile(f"results.obs_{obs}.qpu_lonoise.reg_0.{nbits}bits.csv"),
-        'qpu_lonoise_reg1' : FromFile(f"results.obs_{obs}.qpu_lonoise.reg_1.{nbits}bits.csv"),
-        'qpu_hinoise_reg0' : FromFile(f"results.obs_{obs}.qpu_hinoise.reg_0.{nbits}bits.csv"),
-        'qpu_hinoise_reg1' : FromFile(f"results.obs_{obs}.qpu_hinoise.reg_1.{nbits}bits.csv"),
-        #'hyb_reg0'         : FromFile(f"results.obs_{obs}.hyb.reg_0.csv"),
-        #'hyb_reg1'         : FromFile(f"results.obs_{obs}.hyb.reg_1.csv"),
+        'sim'              : FromFile(f"csv/results.obs_{obs}.sim.reg_0.{nbits}bits.csv"),
+        'qpu_lonoise_reg0' : FromFile(f"csv/results.obs_{obs}.qpu_lonoise.reg_0.{nbits}bits.csv"),
+        'qpu_lonoise_reg1' : FromFile(f"csv/results.obs_{obs}.qpu_lonoise.reg_1.{nbits}bits.csv"),
+        'qpu_hinoise_reg0' : FromFile(f"csv/results.obs_{obs}.qpu_hinoise.reg_0.{nbits}bits.csv"),
+        'qpu_hinoise_reg1' : FromFile(f"csv/results.obs_{obs}.qpu_hinoise.reg_1.{nbits}bits.csv"),
+        #'hyb_reg0'         : FromFile(f"csv/results.obs_{obs}.hyb.reg_0.csv"),
+        #'hyb_reg1'         : FromFile(f"csv/results.obs_{obs}.hyb.reg_1.csv"),
 }
 
 

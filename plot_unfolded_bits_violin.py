@@ -64,10 +64,10 @@ pdata = {
         }
     
 unfolded_data = {
-        'lower noise 4bits' : FromFile(f"results.obs_{obs}.qpu_lonoise.reg_0.4bits.csv"),
-        'lower noise 8bits' : FromFile(f"results.obs_{obs}.qpu_lonoise.reg_0.8bits.csv"),
-        'regular noise 4bits' : FromFile(f"results.obs_{obs}.qpu_hinoise.reg_0.4bits.csv"),
-        'regular noise 8bits' : FromFile(f"results.obs_{obs}.qpu_hinoise.reg_0.8bits.csv"),
+        'lower noise 4bits' : FromFile(f"csv/results.obs_{obs}.qpu_lonoise.reg_0.4bits.csv"),
+        'lower noise 8bits' : FromFile(f"csv/results.obs_{obs}.qpu_lonoise.reg_0.8bits.csv"),
+        'regular noise 4bits' : FromFile(f"csv/results.obs_{obs}.qpu_hinoise.reg_0.4bits.csv"),
+        'regular noise 8bits' : FromFile(f"csv/results.obs_{obs}.qpu_hinoise.reg_0.8bits.csv"),
 }
 
 nreads = 20
