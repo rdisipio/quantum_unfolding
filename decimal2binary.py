@@ -137,8 +137,7 @@ class BinaryEncoder(object):
             for j in range(n-1,-1,-1):
                 a = n*i + j
                 x_b[a] = int( Decimal(x_d) % Decimal( self.beta[i][j] ) )
-                #x_b[a] = int( x_d % self.beta[i][j] )
-                print(i, a, x_d, self.beta[i][j], x_b[a] )
+                #print(i, a, x_d, self.beta[i][j], x_b[a] )
                 x_d = (x_d // self.beta[i][j-1])
 
         return x_b
@@ -189,7 +188,7 @@ class BinaryEncoder(object):
             n = self.rho[i]
             for j in range(n-1, -1, -1):
                 a = n*i-j
-                print(n,i,j,a,self.alpha[i],self.beta[i][j],x_b[a])
+                #print(n,i,j,a,self.alpha[i],self.beta[i][j],x_b[a])
                 x[i] += self.beta[i][j] * x_b[a]
 
         return x
