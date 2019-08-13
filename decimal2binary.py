@@ -187,8 +187,8 @@ class BinaryEncoder(object):
         for i in range(N-1, -1, -1):
             x[i] = self.alpha[i]
             n = self.rho[i]
-            for j in range(n):
-                a = n*i + (n-j-1)
+            for j in range(n-1, -1, -1):
+                a = n*i-j
                 print(n,i,j,a,self.alpha[i],self.beta[i][j],x_b[a])
                 x[i] += self.beta[i][j] * x_b[a]
 
