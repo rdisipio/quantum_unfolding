@@ -12,9 +12,8 @@ from dwave.system import EmbeddingComposite, FixedEmbeddingComposite, TilingComp
 from dwave_tools import get_embedding_with_short_chain, get_energy, anneal_sched_custom, merge_substates
 
 from dwave_tools import *
-import decimal2binary as d2b
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#########################################
 
 class Backends(enum.Enum):
     undefined   = 0
@@ -32,19 +31,57 @@ class StatusCode(enum.Enum):
     success = 1
     failed  = 2
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#########################################
+
+class QUBOData(object):
+    def __init__(self):
+        self.x = None
+        self.R = None
+        self.d = None
+        self.y = None
+
+        self.x_b = None
+        self.y_b = None
+    
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def set_truth(self, x):
+        self.x = np.copy( x )
+    
+    def set_response( self, R ):
+        self.R = np.copy( R )
+    
+    def set_data( self, d ):
+        self.d = np.copy( d )
+    
+    def set_signal( self, y ):
+        self.y = np.copy( y )
+    
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+#########################################
+
 
 class QUBOUnfolder( object ):
     def __init__(self):
         self.backend = Backends.qpu_lonoise
         self.num_reads = 5000
-        self.encoding  = np.zeros(1)
-        self.x = np.zeros(1)
-        self.R0 = np.diag(1)
-        self.d    = np.zeros(1)
-        self.syst = np.zeros(1)
-        self.y    = np.zeros(1)
+        self.encoding  = 4 # number of bits
+        self._scaling = 0.5
+
+        self._data = QUBOData()
+
+        # binary encoding
+        self.alpha = None # offset
+        self.beta  = None # scaling
+
+        # Tikhonov regularization
+        self.D      = None
         self.lmbd = 0
+
+        # Systematics
+        self.syst   = None
         self.gamma = 0
 
         self.n_bins_truth = 0
@@ -66,35 +103,15 @@ class QUBOUnfolder( object ):
     
     def check_encoding(self):
         if isinstance(self.encoding, int):
+            N = self.n_bins_truth
             n = self.encoding # e.g. 4(bits), 8(bits)
-            self.encoding = np.array( [n]*self.n_bins_truth )
+            self.encoding = np.array( [n]*N )
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def set_truth( self, h_truth : np.array ):
-        self.x = np.copy( h_truth )
-        self.n_bins_truth = self.x.shape[0]
+    def get_data(self):
+        return self._data
     
-    def get_truth( self ):
-        return self.x
-    
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    def set_response( self, h_response : np.array ):
-        self.R0 = np.copy( h_response )
-    
-    def get_response( self ):
-        return self.R0
-    
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    def set_data( self, h_data : np.array ):
-        self.d = np.copy( h_data )
-        self.n_bins_reco = self.d.shape[0]
-    
-    def get_data( self ):
-        return self.d
-
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def set_syst_1sigma( self, h_syst : np.array ):
@@ -107,7 +124,7 @@ class QUBOUnfolder( object ):
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def set_regularization( self, lmbd = 1. ):
-        self.lmbd = lmbd
+        self.lmbd = float(lmbd)
 
     def get_regularization( self ):
         return self.lmbd
@@ -115,27 +132,75 @@ class QUBOUnfolder( object ):
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def set_syst_penalty( self, gamma=1. ):
-        self.gamma = gamma
+        self.gamma = float(gamma)
     
     def get_syst_penalty( self ):
         return self.gamma
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    
+
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
     def make_qubo_matrix(self):
         n_params = self.n_bins_truth + self.n_syst
+
+        Nreco  = self.n_bins_reco
+        Ntruth = self.n_bins_truth
+        Nsyst  = self.n_syst
 
         self.Q = np.zeros( [n_params, n_params ])
 
         # regularization (Laplacian matrix)
-        D = d2b.laplacian( self.n_bins_truth )
+        self.D = d2b.laplacian( self.n_bins_truth )
+
+        self.S = np.zeros( [self.n_bins_reco, self.n_bins_truth ] )
+        if self.n_syst > 0:
+            self.S = np.block([
+                    [np.zeros([Nbins, Nbins]), np.zeros([Nbins,Nsyst])], 
+                    [np.zeros([Nsyst, Nbins]), np.eye(Nsyst)]
+                ])
+            S = self.gamma * S
+
+            # in case Nsyst>0, extend vectors and laplacian
+            self.D = np.block([
+                [D,                        np.zeros([Nbins, Nsyst])],
+                [np.zeros([Nsyst, Nbins]), np.zeros([Nsyst, Nsyst])] 
+              ])
+
+        W = np.zeros( [n*N, n*N] )
+        for j in range(n*N):
+            for k in range(j+1, n*N):
+                for i in range(N):
+                    W[j][k] += self.R[i][j]*self.R[i][k] + \
+                            self.lmbd*self.D[i][j]*self.D[i][k]
+        
+        # quadratic constraints
+        J = {}
+        for p1 in range(n*N):
+            for p2 in range(j+1, n*N):
+                idx = (p1, p2)
+                J[idx] = 0
+        for p1 in range(n*N):
+            for p2 in range(p1+1, n*N):
+                idx = (j, k)
+                J[idx] += 2*W[j][k]*alpha_1[j][p]*alpha_1[j][p]
+
 
         # linear constraints
         h = {}
+        for j in range(n*N):
+            idx = (j)
+            h[idx] = 0
+            for i in range(N):
+                h[idx] += (
+                    R_b[i][j]*R_b[i][j] -
+                    2*R_b[i][j] * d[i] + # << d_b[i]?
+                    lmbd*D_b[i][j]*D_b[i][j]
+                    )
 
-        # quadratic constraints
-        J = {}
-
+        
         return h, J
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -164,21 +229,35 @@ class QUBOUnfolder( object ):
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
          
-    def run(self):
+    def solve(self):
 
-        if not self.R0.shape[1] == self.n_bins_truth:
-            raise Exception( f"Number of bins at truth level do not match between 1D spectrum ({self.n_bins_truth}) and response matrix ({self.R0.shape[1]})" ) 
-        if not self.R0.shape[0] == self.n_bins_reco:
-            raise Exception( f"Number of bins at reco level do not match between 1D spectrum ({self.n_bins_reco}) and response matrix ({self.R0.shape[0]})" ) 
+        if not self.R.shape[1] == self.n_bins_truth:
+            raise Exception( f"Number of bins at truth level do not match between 1D spectrum ({self.n_bins_truth}) and response matrix ({self.R.shape[1]})" ) 
+        if not self.R.shape[0] == self.n_bins_reco:
+            raise Exception( f"Number of bins at reco level do not match between 1D spectrum ({self.n_bins_reco}) and response matrix ({self.R.shape[0]})" ) 
 
         self.check_encoding()
+        self.convert_to_binary()
+
+        print("INFO: N bins:", N)
+        print("INFO: n-bits encoding:", n)
+
+        print("INFO: Signal truth-level x:")
+        print(self.x)
+        print("INFO: pseudo-data b:")
+        print(self.d)
+        print("INFO: Response matrix:")
+        print(self.R)
+        print("INFO: Laplacian operator:")
+        print(self.D)
+        print("INFO: regularization strength:", self.lmbd)
 
         h, J = self.make_qubo_matrix()
 
         self._bqm = dimod.BinaryQuadraticModel( linear=h,
-                                          quadratic=J,
-                                          offset=0.0,
-                                          vartype=dimod.BINARY)
+                                                quadratic=J,
+                                                offset=0.0,
+                                                vartype=dimod.BINARY)
 
         print("INFO: solving the QUBO model (size=%i)..." % len(self._bqm))
 
@@ -223,8 +302,40 @@ class QUBOUnfolder( object ):
                     #'postprocess':  'optimization',
             }
 
-            self._results = sampler.sample( self._bqm, **solver_parameters).aggregate()
-            self._status = StatusCode.success
+            if self.backend in [ Backends.qpu, Backends.qpu_hinoise, Backends.qpu_lonoise ]:
+                print("INFO: Running on QPU")
+                self._results = sampler.sample( self._bqm, **solver_parameters).aggregate()
+                self._status = StatusCode.success
+            
+            elif self.backend in [ Backends.hyb ]:
+                print("INFO: hybrid execution")
+                import hybrid
+
+                # Define the workflow
+                # hybrid.EnergyImpactDecomposer(size=len(bqm), rolling_history=0.15)
+                iteration = hybrid.RacingBranches(
+                    hybrid.InterruptableTabuSampler(),
+                    hybrid.EnergyImpactDecomposer(size=len(bqm)//2, rolling=True)
+                    | hybrid.QPUSubproblemAutoEmbeddingSampler(num_reads=num_reads)
+                    | hybrid.SplatComposer()
+                ) | hybrid.ArgMin()
+                workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=3)
+                #workflow = hybrid.Loop(iteration, max_iter=20, convergence=3)
+
+                init_state = hybrid.State.from_problem(bqm)
+                self._results = workflow.run(init_state).result().samples
+                self._status = StatusCode.success
+
+                # show execution profile
+                print("INFO: timing:")
+                workflow.timers
+                hybrid.print_structure(workflow)
+                hybrid.profiling.print_counters(workflow)
+
+            elif self.backend in [ Backends.qsolv ]:
+                print("INFO: using QBsolve with FixedEmbeddingComposite")
+                self._results = QBSolv().sample_qubo(S, solver=sampler, solver_limit=5)
+                self._status = StatusCode.success
 
         return self._status
 
