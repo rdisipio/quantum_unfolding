@@ -222,7 +222,7 @@ class BinaryEncoder(object):
             n = self.rho[i]
             for j in range(0, n, 1):
                 a = np.sum(self.rho[:i])+j
-                x[i] += self.beta[i][j] * x_b[a]
+                x[i] += self.beta[i][a] * x_b[a]
 
         return x
         
