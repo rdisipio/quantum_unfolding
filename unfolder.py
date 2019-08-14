@@ -98,18 +98,27 @@ class QUBOUnfolder( object ):
         self._hardware_sampler = None
         self._bqm     = None
         self._results = []
+        self.best_fit = []
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def set_encoding( self, beta : np.array ):
-        self.rho = np.copy( beta )
+    def set_encoding( self, rho ):
+        if isinstance(rho, int):
+            n = rho
+            if self._data.x.shape[0]>0:
+                N = self._data.x.shape[0]
+                self.rho = np.array( [n]*N )
+            else:
+                self.rho = rho
+        else:
+            self.rho = np.copy( rho )
 
     def get_encoding( self ):
         return self.rho
     
     def check_encoding(self):
         if isinstance(self.rho, int):
-            N = self.n_bins_truth
+            N = self._data.x.shape[0]
             n = self.rho # e.g. 4(bits), 8(bits)
             self.rho = np.array( [n]*N )
 
@@ -151,6 +160,11 @@ class QUBOUnfolder( object ):
         based on a scaling parameter (e.g. +- 50% ) and the truth signal distribution
         '''
 
+        # if encoding is still a int number, change it to array of Nbits per bin
+        self.check_encoding()
+
+        self._encoder.set_rho( self.rho )
+
         self._data.x_b = self._encoder.auto_encode( self._data.x, 
                                                     auto_range=self._auto_scaling )
 
@@ -158,6 +172,7 @@ class QUBOUnfolder( object ):
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def make_qubo_matrix(self):
+    
         n_params = self.n_bins_truth + self.n_syst
 
         Nbins = self.n_bins_truth
@@ -184,6 +199,10 @@ class QUBOUnfolder( object ):
 
               ])
 
+        print("INFO: Laplacian operator:")
+        print(self.D)
+        print("INFO: regularization strength:", self.lmbd)
+
         d = self._data.d
         alpha = self.alpha
         beta = self.beta
@@ -204,7 +223,7 @@ class QUBOUnfolder( object ):
             for b in range(a+1, n_bits_tot):
                 idx = (a, b)
                 J[idx] = 0
-                for j in range(Nbins):
+                for j in range(Nbins):   
                     for k in range(Nbins):
                         J[idx] += 2*W[j][k]*beta[j][a]*beta[k][b]
 
@@ -223,7 +242,6 @@ class QUBOUnfolder( object ):
                         W[j][k]*beta[j][a]*beta[k][a] )
                     for i in range(Nbins):
                         h[idx] -= 2 * R[i][j]*d[i]*beta[j][a]
-
         
         return h, J
 
@@ -255,26 +273,25 @@ class QUBOUnfolder( object ):
          
     def solve(self):
 
-        if not self.R.shape[1] == self.n_bins_truth:
-            raise Exception( f"Number of bins at truth level do not match between 1D spectrum ({self.n_bins_truth}) and response matrix ({self.R.shape[1]})" ) 
-        if not self.R.shape[0] == self.n_bins_reco:
-            raise Exception( f"Number of bins at reco level do not match between 1D spectrum ({self.n_bins_reco}) and response matrix ({self.R.shape[0]})" ) 
+        self.n_bins_truth = self._data.x.shape[0]
+        self.n_bins_reco  = self._data.d.shape[0]
 
-        self.check_encoding()
+        if not self._data.R.shape[1] == self.n_bins_truth:
+            raise Exception( "Number of bins at truth level do not match between 1D spectrum (%i) and response matrix (%i)" % (self.n_bins_truth,self._data.R.shape[1]) ) 
+        if not self._data.R.shape[0] == self.n_bins_reco:
+            raise Exception( "Number of bins at reco level do not match between 1D spectrum (%i) and response matrix (%i)" % (self.n_bins_reco,self._data.R.shape[0]) ) 
+
         self.convert_to_binary()
 
-        print("INFO: N bins:", N)
-        print("INFO: n-bits encoding:", n)
+        print("INFO: N bins:", self._data.x.shape[0])
+        print("INFO: n-bits encoding:", self.rho)
 
         print("INFO: Signal truth-level x:")
-        print(self.x)
+        print(self._data.x)
         print("INFO: pseudo-data b:")
-        print(self.d)
+        print(self._data.d)
         print("INFO: Response matrix:")
-        print(self.R)
-        print("INFO: Laplacian operator:")
-        print(self.D)
-        print("INFO: regularization strength:", self.lmbd)
+        print(self._data.R)
 
         h, J = self.make_qubo_matrix()
 
@@ -373,13 +390,13 @@ class QUBOUnfolder( object ):
         else:
             raise Exception( "QUBO not execution failed.")
 
-        best_fit = self._results.first
+        self.best_fit = self._results.first
 
-        q = np.array(list(best_fit.sample.values()))
+        q = np.array(list(self.best_fit.sample.values()))
 
         self._data.y = self._encoder.decode( q )
 
-        return self.y
+        return self._data.y
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
