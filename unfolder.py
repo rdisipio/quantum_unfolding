@@ -79,8 +79,6 @@ class QUBOUnfolder( object ):
 
         # binary encoding
         self.rho   = 4 # number of bits
-        self.alpha = [] # offset
-        self.beta  = [] # scaling
 
         # Tikhonov regularization
         self.D      = []
@@ -165,9 +163,13 @@ class QUBOUnfolder( object ):
 
         self._encoder.set_rho( self.rho )
 
-        self._data.x_b = self._encoder.auto_encode( self._data.x, 
-                                                    auto_range=self._auto_scaling )
+        x_b = self._encoder.auto_encode( self._data.x, 
+                                         auto_range=self._auto_scaling )
 
+        print("INFO: alpha =", self._encoder.alpha)
+        print("INFO: beta =")
+        print(self._encoder.beta)
+        print("INFO: x_b =", x_b)
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -204,20 +206,22 @@ class QUBOUnfolder( object ):
         print("INFO: regularization strength:", self.lmbd)
 
         d = self._data.d
-        alpha = self.alpha
-        beta = self.beta
+        alpha = self._encoder.alpha
+        beta = self._encoder.beta
         R = self._data.R
+        D = self.D
 
         W = np.zeros( [Nbins, Nbins] )
         for j in range(Nbins):
             for k in range(j+1, Nbins):
                 for i in range(Nbins):
                     W[j][k] += R[i][j]*R[i][k] + \
-                            self.lmbd*self.D[i][j]*self.D[i][k]
+                            self.lmbd*D[i][j]*D[i][k]
         
         n_bits_tot = sum( self.rho )
-
+        
         # quadratic constraints
+        print("DEBUG: quadratic constraints")
         J = {}
         for a in range(n_bits_tot):
             for b in range(a+1, n_bits_tot):
@@ -225,10 +229,13 @@ class QUBOUnfolder( object ):
                 J[idx] = 0
                 for j in range(Nbins):   
                     for k in range(Nbins):
-                        J[idx] += 2*W[j][k]*beta[j][a]*beta[k][b]
-
+                        print(j,k,a,b)
+                        w = W[j][k]
+                        J[idx] += 2*w*beta[j][a]*beta[k][b]
+        print(J)
         
         # linear constraints
+        print("DEBUG: linear constraints")
         h = {}
         for a in range(n_bits_tot):
             idx = (a)
@@ -242,6 +249,7 @@ class QUBOUnfolder( object ):
                         W[j][k]*beta[j][a]*beta[k][a] )
                     for i in range(Nbins):
                         h[idx] -= 2 * R[i][j]*d[i]*beta[j][a]
+        print(h)
         
         return h, J
 

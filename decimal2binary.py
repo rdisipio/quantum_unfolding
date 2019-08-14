@@ -128,7 +128,7 @@ class BinaryEncoder(object):
         N = len(x)
         
         n_bits_total = sum( self.rho )
-        x_b = np.zeros( n_bits_total )
+        x_b = np.zeros( n_bits_total, dtype='uint' )
 
         for i in range(N-1, -1, -1):
             n = self.rho[i]
@@ -148,6 +148,7 @@ class BinaryEncoder(object):
         
     
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
     def random_encode(self, x, floats=False ):
         '''
         encode x chosing alpha and beta parameters at random from
@@ -175,6 +176,8 @@ class BinaryEncoder(object):
     
         return x_b
 
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
     def auto_encode( self, x, auto_range = 0.5 ):
         ''' 
         if range is [ x*(1-h), x*(1+h)], e.g. x +- 50%
