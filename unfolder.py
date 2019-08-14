@@ -12,6 +12,7 @@ from dwave.system import EmbeddingComposite, FixedEmbeddingComposite, TilingComp
 from dwave_tools import get_embedding_with_short_chain, get_energy, anneal_sched_custom, merge_substates
 
 from dwave_tools import *
+import decimal2binary as d2b
 
 #########################################
 
@@ -33,6 +34,7 @@ class StatusCode(enum.Enum):
 
 #########################################
 
+
 class QUBOData(object):
     def __init__(self):
         self.x = None
@@ -41,6 +43,7 @@ class QUBOData(object):
         self.y = None
 
         self.x_b = None
+        self.R_b = None
         self.y_b = None
     
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -67,21 +70,24 @@ class QUBOUnfolder( object ):
     def __init__(self):
         self.backend = Backends.qpu_lonoise
         self.num_reads = 5000
-        self.encoding  = 4 # number of bits
-        self._scaling = 0.5
+        
+
+        self._encoder = d2b.BinaryEncoder()
+        self._auto_scaling = 0.5
 
         self._data = QUBOData()
 
         # binary encoding
-        self.alpha = None # offset
-        self.beta  = None # scaling
+        self.rho   = 4 # number of bits
+        self.alpha = [] # offset
+        self.beta  = [] # scaling
 
         # Tikhonov regularization
-        self.D      = None
+        self.D      = []
         self.lmbd = 0
 
         # Systematics
-        self.syst   = None
+        self.syst   = []
         self.gamma = 0
 
         self.n_bins_truth = 0
@@ -91,21 +97,21 @@ class QUBOUnfolder( object ):
         self._status = StatusCode.unknown
         self._hardware_sampler = None
         self._bqm     = None
-        self._results = None
+        self._results = []
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def set_encoding( self, beta : np.array ):
-        self.encoding = np.copy( beta )
+        self.rho = np.copy( beta )
 
     def get_encoding( self ):
-        return self.encoding
+        return self.rho
     
     def check_encoding(self):
-        if isinstance(self.encoding, int):
+        if isinstance(self.rho, int):
             N = self.n_bins_truth
-            n = self.encoding # e.g. 4(bits), 8(bits)
-            self.encoding = np.array( [n]*N )
+            n = self.rho # e.g. 4(bits), 8(bits)
+            self.rho = np.array( [n]*N )
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -139,15 +145,22 @@ class QUBOUnfolder( object ):
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    
+    def convert_to_binary(self):
+        '''
+        auto_encode derives best-guess values for alpha_i and beta_ia
+        based on a scaling parameter (e.g. +- 50% ) and the truth signal distribution
+        '''
+
+        self._data.x_b = self._encoder.auto_encode( self._data.x, 
+                                                    auto_range=self._auto_scaling )
+
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def make_qubo_matrix(self):
         n_params = self.n_bins_truth + self.n_syst
 
-        Nreco  = self.n_bins_reco
-        Ntruth = self.n_bins_truth
+        Nbins = self.n_bins_truth
         Nsyst  = self.n_syst
 
         self.Q = np.zeros( [n_params, n_params ])
@@ -155,7 +168,8 @@ class QUBOUnfolder( object ):
         # regularization (Laplacian matrix)
         self.D = d2b.laplacian( self.n_bins_truth )
 
-        self.S = np.zeros( [self.n_bins_reco, self.n_bins_truth ] )
+        # systematics
+        self.S = np.zeros( [Nbins, Nbins] )
         if self.n_syst > 0:
             self.S = np.block([
                     [np.zeros([Nbins, Nbins]), np.zeros([Nbins,Nsyst])], 
@@ -165,40 +179,50 @@ class QUBOUnfolder( object ):
 
             # in case Nsyst>0, extend vectors and laplacian
             self.D = np.block([
-                [D,                        np.zeros([Nbins, Nsyst])],
+                [self.D,                   np.zeros([Nbins, Nsyst])],
                 [np.zeros([Nsyst, Nbins]), np.zeros([Nsyst, Nsyst])] 
+
               ])
 
-        W = np.zeros( [n*N, n*N] )
-        for j in range(n*N):
-            for k in range(j+1, n*N):
-                for i in range(N):
-                    W[j][k] += self.R[i][j]*self.R[i][k] + \
+        d = self._data.d
+        alpha = self.alpha
+        beta = self.beta
+        R = self._data.R
+
+        W = np.zeros( [Nbins, Nbins] )
+        for j in range(Nbins):
+            for k in range(j+1, Nbins):
+                for i in range(Nbins):
+                    W[j][k] += R[i][j]*R[i][k] + \
                             self.lmbd*self.D[i][j]*self.D[i][k]
         
+        n_bits_tot = sum( self.rho )
+
         # quadratic constraints
         J = {}
-        for p1 in range(n*N):
-            for p2 in range(j+1, n*N):
-                idx = (p1, p2)
+        for a in range(n_bits_tot):
+            for b in range(a+1, n_bits_tot):
+                idx = (a, b)
                 J[idx] = 0
-        for p1 in range(n*N):
-            for p2 in range(p1+1, n*N):
-                idx = (j, k)
-                J[idx] += 2*W[j][k]*alpha_1[j][p]*alpha_1[j][p]
+                for j in range(Nbins):
+                    for k in range(Nbins):
+                        J[idx] += 2*W[j][k]*beta[j][a]*beta[k][b]
 
-
+        
         # linear constraints
         h = {}
-        for j in range(n*N):
-            idx = (j)
+        for a in range(n_bits_tot):
+            idx = (a)
             h[idx] = 0
-            for i in range(N):
-                h[idx] += (
-                    R_b[i][j]*R_b[i][j] -
-                    2*R_b[i][j] * d[i] + # << d_b[i]?
-                    lmbd*D_b[i][j]*D_b[i][j]
-                    )
+        for a in range(n_bits_tot):
+            idx = (a)
+            for j in range(Nbins):
+                for k in range(Nbins):
+                    h[idx] += (
+                        2 * W[j][k] * alpha[k] * beta[j][a] + \
+                        W[j][k]*beta[j][a]*beta[k][a] )
+                    for i in range(Nbins):
+                        h[idx] -= 2 * R[i][j]*d[i]*beta[j][a]
 
         
         return h, J
@@ -206,7 +230,7 @@ class QUBOUnfolder( object ):
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def find_embedding( self, J : dict, n_tries = 5 ):
-
+ 
         embedding = get_embedding_with_short_chain(J,
                                                tries=ntries,
                                                processor=self._hardware_sampler.edgelist,
@@ -353,7 +377,7 @@ class QUBOUnfolder( object ):
 
         q = np.array(list(best_fit.sample.values()))
 
-        self.y = d2b.compact_vector(q, self.encoding )
+        self._data.y = self._encoder.decode( q )
 
         return self.y
 
