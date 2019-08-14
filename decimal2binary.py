@@ -1,5 +1,5 @@
 import numpy as np
-
+import random as rnd
 
 def laplacian(n):
 
@@ -134,17 +134,47 @@ class BinaryEncoder(object):
             n = self.rho[i]
             x_d = x[i] - self.alpha[i]
 
-            for j in range(n-1,-1,-1):
-                a = n*i + j
-                x_b[a] = int( Decimal(x_d) % Decimal( self.beta[i][j] ) )
+            for j in range(0,n,1):
+                a = np.sum(self.rho[:i]) + j
+                #x_b[a] = int( Decimal(x_d) % Decimal( self.beta[i][j] ) )
+                more_than = Decimal(x_d) // Decimal(self.beta[i][j] )
+                equal_to = int(np.isclose(x_d, self.beta[i][j] ) )
+                x_b[a] = min([1, more_than or equal_to ])
                 #x_b[a] = int( x_d % self.beta[i][j] )
                 print(i, a, x_d, self.beta[i][j], x_b[a] )
-                x_d = (x_d // self.beta[i][j-1])
+                #x_d = (x_d // self.beta[i][j-1])
+                x_d = x_d - x_b[a]*self.beta[i][j]
 
         return x_b
         
     
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    def random_encode(self, x, floats=False ):
+        '''
+        encode x chosing alpha and beta parameters at random from
+        suitable set
+        '''
+        N=len(self.rho)
+        self.alpha=np.zeros(N)
+        self.beta = [ None ] * N
+
+        for i in range(0, N, 1):
+            n = self.rho[i]
+            self.beta[i] = np.zeros(n)
+            if floats:
+                self.alpha[i] = rnd.uniform(0,x[i])
+            else:
+                self.alpha[i] = rnd.randrange(x[i])
+            if x[i] == 0:
+                self.alpha[i] = -1
+            scale_factor = (x[i] - self.alpha[i])/rnd.randrange(1,np.power(2,n)) 
+
+            for j in range(n):
+                self.beta[i][j] = scale_factor * np.power(2,n-j-1) 
+        
+        x_b = self.encode(x)
+    
+        return x_b
 
     def auto_encode( self, x, auto_range = 0.5 ):
         ''' 
@@ -187,8 +217,8 @@ class BinaryEncoder(object):
         for i in range(N-1, -1, -1):
             x[i] = self.alpha[i]
             n = self.rho[i]
-            for j in range(n-1, -1, -1):
-                a = n*i-j
+            for j in range(0, n, 1):
+                a = np.sum(self.rho[:i])+j
                 print(n,i,j,a,self.alpha[i],self.beta[i][j],x_b[a])
                 x[i] += self.beta[i][j] * x_b[a]
 
