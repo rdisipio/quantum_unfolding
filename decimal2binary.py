@@ -136,13 +136,12 @@ class BinaryEncoder(object):
 
             for j in range(0,n,1):
                 a = np.sum(self.rho[:i]) + j
-                #x_b[a] = int( Decimal(x_d) % Decimal( self.beta[i][j] ) )
+
                 more_than = Decimal(x_d) // Decimal(self.beta[i][j] )
                 equal_to = int(np.isclose(x_d, self.beta[i][j] ) )
+
                 x_b[a] = min([1, more_than or equal_to ])
-                #x_b[a] = int( x_d % self.beta[i][j] )
-                print(i, a, x_d, self.beta[i][j], x_b[a] )
-                #x_d = (x_d // self.beta[i][j-1])
+                
                 x_d = x_d - x_b[a]*self.beta[i][j]
 
         return x_b
@@ -219,7 +218,6 @@ class BinaryEncoder(object):
             n = self.rho[i]
             for j in range(0, n, 1):
                 a = np.sum(self.rho[:i])+j
-                print(n,i,j,a,self.alpha[i],self.beta[i][j],x_b[a])
                 x[i] += self.beta[i][j] * x_b[a]
 
         return x
