@@ -16,14 +16,15 @@ import decimal2binary as d2b
 
 #########################################
 
-class Backends(enum.Enum):
+class Backends(enum.IntEnum):
     undefined   = 0
-    qpu         = 1
-    qpu_lonoise = 1
-    qpu_hinoise = 2
-    sim         = 3
-    hyb         = 4
-    qsolv       = 5
+    cpu         = 1
+    qpu         = 2
+    qpu_lonoise = 2
+    qpu_hinoise = 3
+    sim         = 4
+    hyb         = 5
+    qsolv       = 6
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -97,6 +98,19 @@ class QUBOUnfolder( object ):
         self._bqm     = None
         self._results = []
         self.best_fit = []
+
+        self.solver_parameters = {
+                    'num_reads': 5000,
+                    'auto_scale': True,
+                    'annealing_time': 20,  # default: 20 us
+                    'num_spin_reversal_transforms': 2,  # default: 2
+                    #'anneal_schedule': anneal_sched_custom(id=3),
+                    #'chain_strength' : 50000,
+                    #'chain_break_fraction':0.33,
+                    #'chain_break_method':None,
+                    #'postprocess':  'sampling', # seems very bad!
+                    #'postprocess':  'optimization',
+            }
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -211,54 +225,43 @@ class QUBOUnfolder( object ):
         R = self._data.R
         D = self.D
 
-        W = np.zeros( [Nbins, Nbins] )
-        for j in range(Nbins):
-            for k in range(j+1, Nbins):
-                for i in range(Nbins):
-                    W[j][k] += R[i][j]*R[i][k] + \
-                            self.lmbd*D[i][j]*D[i][k]
-        
+        W = np.einsum( 'ij,ik', R, R ) + self.lmbd*np.einsum( 'ij,ik', D, D)
+        print("DEBUG: W_ij =")
+        print(W)
+
         n_bits_tot = sum( self.rho )
-        
+
+        # Using Einstein notation (keeping finger crossed...)
+
         # quadratic constraints
-        print("DEBUG: quadratic constraints")
-        J = {}
-        for a in range(n_bits_tot):
-            for b in range(a+1, n_bits_tot):
-                idx = (a, b)
-                J[idx] = 0
-                for j in range(Nbins):   
-                    for k in range(Nbins):
-                        print(j,k,a,b)
-                        w = W[j][k]
-                        J[idx] += 2*w*beta[j][a]*beta[k][b]
-        print(J)
-        
+        Qq = 2 * np.einsum( 'jk,ja,kb->ab', W, beta, beta )
+        Qq = np.triu(Qq)
+        np.fill_diagonal(Qq, 0.)
+        print("DEBUG: quadratic coeff Qq =")
+        print(Qq)
+
         # linear constraints
-        print("DEBUG: linear constraints")
-        h = {}
-        for a in range(n_bits_tot):
-            idx = (a)
-            h[idx] = 0
-        for a in range(n_bits_tot):
-            idx = (a)
-            for j in range(Nbins):
-                for k in range(Nbins):
-                    h[idx] += (
-                        2 * W[j][k] * alpha[k] * beta[j][a] + \
-                        W[j][k]*beta[j][a]*beta[k][a] )
-                    for i in range(Nbins):
-                        h[idx] -= 2 * R[i][j]*d[i]*beta[j][a]
-        print(h)
-        
-        return h, J
+        Ql = 2*np.einsum( 'jk,k,ja->a', W, alpha, beta ) + \
+             np.einsum( 'jk,ja,ka->a', W, beta, beta ) - \
+             2* np.einsum( 'ij,i,ja->a', R, d, beta )
+        Ql = np.diag(Ql)
+        print("DEBUG: linear coeff Ql =")
+        print(Ql)
+
+        # total coeff matrix:
+        Q = Qq + Ql
+
+        print("DEBUG: matrix of QUBO coefficents Q_ab =:")
+        print(Q)
+
+        return Q
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def find_embedding( self, J : dict, n_tries = 5 ):
  
         embedding = get_embedding_with_short_chain(J,
-                                               tries=ntries,
+                                               tries=n_tries,
                                                processor=self._hardware_sampler.edgelist,
                                                verbose=True)
 
@@ -301,65 +304,51 @@ class QUBOUnfolder( object ):
         print("INFO: Response matrix:")
         print(self._data.R)
 
-        h, J = self.make_qubo_matrix()
-
-        self._bqm = dimod.BinaryQuadraticModel( linear=h,
-                                                quadratic=J,
-                                                offset=0.0,
-                                                vartype=dimod.BINARY)
+        Q = self.make_qubo_matrix()
+        self._bqm = dimod.BinaryQuadraticModel.from_numpy_matrix(Q)
 
         print("INFO: solving the QUBO model (size=%i)..." % len(self._bqm))
-
-        if self.backend in ['cpu']:
+        
+        if self.backend in [ Backends.cpu ]:
             print("INFO: running on CPU...")
             self._results = dimod.ExactSolver().sample(self._bqm)
             self._status = StatusCode.success
         
-        elif self.backend in ['sim']:
+        elif self.backend in [ Backends.sim ]:
             print("INFO: running on simulated annealer (neal)")
 
             sampler = neal.SimulatedAnnealingSampler()
-
+            num_reads = self.solver_parameters['num_reads']
             self._results = sampler.sample( self._bqm, num_reads=num_reads).aggregate()
             self._status = StatusCode.success
 
         elif self.backend in [ Backends.qpu, Backends.qpu_hinoise, Backends.qpu_lonoise, Backends.hyb, Backends.qsolv ]:
             print("INFO: running on QPU")
 
-            self._hardware_sampler = DWaveSampler(config_file=self.get_config_file() )
+            config_file=self.get_config_file()
+            self._hardware_sampler = DWaveSampler(config_file=config_file )
             print("INFO: QPU configuration file:", config_file)
 
             print("INFO: finding optimal minor embedding...")
 
-            ntries = 5 # this might depend on encoding i.e. number of bits
+            n_tries = 5 # this might depend on encoding i.e. number of bits
             
+            J = qubo_quadratic_terms_from_np_array(Q)
             embedding = self.find_embedding( J, n_tries )
 
             print("INFO: creating DWave sampler...")
             sampler = FixedEmbeddingComposite(self._hardware_sampler, embedding)
 
-            solver_parameters = {
-                    'num_reads': num_reads,
-                    'auto_scale': True,
-                    'annealing_time': 20,  # default: 20 us
-                    'num_spin_reversal_transforms': 2,  # default: 2
-                    #'anneal_schedule': anneal_sched_custom(id=3),
-                    #'chain_strength' : 50000,
-                    #'chain_break_fraction':0.33,
-                    #'chain_break_method':None,
-                    #'postprocess':  'sampling', # seems very bad!
-                    #'postprocess':  'optimization',
-            }
-
             if self.backend in [ Backends.qpu, Backends.qpu_hinoise, Backends.qpu_lonoise ]:
                 print("INFO: Running on QPU")
-                self._results = sampler.sample( self._bqm, **solver_parameters).aggregate()
+                self._results = sampler.sample( self._bqm, **self.solver_parameters).aggregate()
                 self._status = StatusCode.success
             
             elif self.backend in [ Backends.hyb ]:
                 print("INFO: hybrid execution")
                 import hybrid
 
+                num_reads = self.solver_parameters['num_reads']
                 # Define the workflow
                 # hybrid.EnergyImpactDecomposer(size=len(bqm), rolling_history=0.15)
                 iteration = hybrid.RacingBranches(
@@ -386,22 +375,26 @@ class QUBOUnfolder( object ):
                 self._results = QBSolv().sample_qubo(S, solver=sampler, solver_limit=5)
                 self._status = StatusCode.success
 
+            else:
+                raise Exception("ERROR: unknown backend", self.backend)
+
+        print("DEBUG: status =", self._status)
         return self._status
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def get_unfolded(self):
 
-        if self._status == 0:
+        if self._status == StatusCode.unknown:
             raise Exception( "QUBO not executed yet.")
-
-        else:
+        
+        if not self._status == StatusCode.success:
             raise Exception( "QUBO not execution failed.")
 
         self.best_fit = self._results.first
 
         q = np.array(list(self.best_fit.sample.values()))
-
+        
         self._data.y = self._encoder.decode( q )
 
         return self._data.y

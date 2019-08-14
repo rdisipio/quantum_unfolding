@@ -6,6 +6,8 @@ from dwave.system.composites import FixedEmbeddingComposite
 from dwave.system.samplers import DWaveSampler
 
 
+#########################################
+
 def anneal_sched_custom(id=0):
     if id == 0:
         return (
@@ -43,6 +45,9 @@ def max_chain_length(embedding: dict) -> int:
         if len(chain) > max_:
             max_ = len(chain)
     return max_
+
+
+#########################################
 
 
 def get_embedding_with_short_chain(S: dict, tries: int = 5,
@@ -89,6 +94,8 @@ def get_embedding_with_short_chain(S: dict, tries: int = 5,
     return embedding
 
 
+#########################################
+
 def get_energy(bqm, sample):
     # see https://docs.ocean.dwavesys.com/projects/dimod/en/latest/_modules/dimod/reference/samplers/exact_solver.html
     M = bqm.binary.to_numpy_matrix()
@@ -97,12 +104,17 @@ def get_energy(bqm, sample):
 
     return float(E) + off
 
+
+#########################################
+
 # define a qbsolv-like workflow
 def merge_substates(_, substates):
     a, b = substates
     return a.updated(subsamples=hybrid.hstack_samplesets(a.subsamples, b.subsamples))
 
-###
+
+#########################################
+
 
 def make_reverse_anneal_schedule(s_target=0.0, hold_time=10.0, ramp_back_slope=0.2, ramp_up_time=0.0201,
                                  ramp_up_slope=None):
@@ -141,3 +153,15 @@ def make_reverse_anneal_schedule(s_target=0.0, hold_time=10.0, ramp_back_slope=0
 
     return pattern
 
+
+#########################################
+
+def qubo_quadratic_terms_from_np_array(Q):
+    J = {}
+    nx = Q.shape[0]
+    ny = Q.shape[1]
+    for a in range(nx):
+        for b in range(a+1, ny):
+            idx = (a,b)
+            J[idx] = Q[a][b]
+    return J

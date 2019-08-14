@@ -24,6 +24,7 @@ args = parser.parse_args()
 
 obs = args.observable
 num_reads = int(args.nreads)
+backend = Backends[args.backend]
 dry_run = bool(args.dry_run)
 if dry_run:
     print("WARNING: dry run. There will be no results at the end.")
@@ -57,6 +58,10 @@ unfolder.get_data().set_data( d )
 unfolder.set_regularization( lmbd )
 unfolder.set_encoding(n)
 
+unfolder.backend = backend
+unfolder.solver_parameters['num_reads'] = num_reads
+unfolder.solver_parameters['annealing_time'] = 20 #us
+ 
 print("INFO: Pseudo-data truth-level x:")
 print(z)
 
@@ -79,7 +84,7 @@ bqm = unfolder._bqm
 best_fit = unfolder.best_fit
 energy_bestfit = best_fit.energy
 q = np.array(list(best_fit.sample.values()))
-y = compact_vector(q, n)
+y = unfolder._encoder.decode(q)
 energy_true_x = get_energy(bqm, x_b)
 energy_true_z = get_energy(bqm, z_b)
 
