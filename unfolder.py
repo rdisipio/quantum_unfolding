@@ -80,12 +80,14 @@ class QUBOUnfolder( object ):
 
         # binary encoding
         self.rho   = 4 # number of bits
+        self.rho_systs = []
 
         # Tikhonov regularization
         self.D      = []
         self.lmbd = 0
 
         # Systematics
+        self.syst_range = 2. # units of standard deviation
         self.syst   = []
         self.gamma = 0
 
@@ -141,13 +143,18 @@ class QUBOUnfolder( object ):
     
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def add_syst_1sigma( self, h_syst : np.array, nbits=None ):
+    def add_syst_1sigma( self, h_syst : np.array, n_bits=4 ):
+        '''
+        :param h_syst:      systematic shifts wrt nominal
+        :param n_bits:      encoding
+        :param syst_range:  range of systematic variation in units of standard deviation
+        '''
         self.syst.append( np.copy( h_syst ) )
         self.n_syst += 1
 
-        if nbits == None:
-            self._encoder.beta # <<<< FIX HERE
-    
+        self.rho_systs.append( int(n_bits) )
+
+
     def get_syst_1sigma( self, i : int):
         return self.syst[i]
     
@@ -183,6 +190,42 @@ class QUBOUnfolder( object ):
         x_b = self._encoder.auto_encode( self._data.x, 
                                          auto_range=self._auto_scaling )
 
+        # add systematics (if any)
+        self.rho_systs = np.array( self.rho_systs, dtype='uint' )
+
+        n_bits_syst = np.sum( self.rho_systs )
+        beta_syst = np.zeros( [self.n_syst, n_bits_syst] )
+
+        if self.n_syst > 0:
+            print("DEBUG: systematics encodings:")
+            print(self.rho_systs)
+
+        for isyst in range(self.n_syst):
+            n_bits = self.rho_systs[isyst]
+
+            alpha = ( 1. - self.syst_range )
+            self._encoder.alpha = np.append( self._encoder.alpha, [alpha] )
+
+            for j in range(n_bits):
+                a = int( np.sum(self.rho_systs[:isyst]) + j )
+                w = 2 * self.syst_range / float(n_bits)
+                beta_syst[isyst][a] = w * np.power(2, n_bits-j-1)
+            
+            self._encoder.rho   = np.append( self._encoder.rho, [n_bits] )
+
+        if self.n_syst > 0:
+            print("beta_syst")
+            print(beta_syst)
+
+            n_bins   = self._encoder.beta.shape[0]
+            n_bits_0 = self._encoder.beta.shape[1]
+
+            self._encoder.beta = np.block([
+                            [self._encoder.beta,                 np.zeros( [ n_bins, n_bits_syst ]) ],
+                            [np.zeros( [self.n_syst, n_bits_0] ),     beta_syst ] 
+                        ])
+
+
         print("INFO: alpha =", self._encoder.alpha)
         print("INFO: beta =")
         print(self._encoder.beta)
@@ -197,8 +240,6 @@ class QUBOUnfolder( object ):
         Nbins = self.n_bins_truth
         Nsyst  = self.n_syst
 
-        self.Q = np.zeros( [n_params, n_params ])
-
         # regularization (Laplacian matrix)
         self.D = d2b.laplacian( self.n_bins_truth )
 
@@ -206,16 +247,6 @@ class QUBOUnfolder( object ):
         self.S = np.zeros( [Nbins, Nbins] )
 
         if self.n_syst > 0:
-            self.S = np.block([
-                    [np.zeros([Nbins, Nbins]), np.zeros([Nbins,Nsyst])], 
-                    [np.zeros([Nsyst, Nbins]), np.eye(Nsyst)]
-                ])
-
-            # in case Nsyst>0, extend vectors and laplacian
-            self.D = np.block([
-                [self.D,                   np.zeros([Nbins, Nsyst])],
-                [np.zeros([Nsyst, Nbins]), np.zeros([Nsyst, Nsyst])] 
-              ])
 
             # matrix of systematic shifts
             T = np.vstack( self.syst ).T
@@ -226,6 +257,21 @@ class QUBOUnfolder( object ):
             self._data.R = np.block([self._data.R, T])
             print("INFO: response uber-matrix:")
             print(self._data.R)
+
+            # in case Nsyst>0, extend vectors and laplacian
+            self.D = np.block([
+                [self.D,                   np.zeros([Nbins, Nsyst])],
+                [np.zeros([Nsyst, Nbins]), np.zeros([Nsyst, Nsyst])] 
+              ])
+
+            self.S = np.block([
+                    [np.zeros([Nbins, Nbins]), np.zeros([Nbins,Nsyst])], 
+                    [np.zeros([Nsyst, Nbins]), np.eye(Nsyst)]
+                ])
+
+            print("INFO: systematics penalty matrix:")
+            print(self.S)
+            print("INFO: systematics penalty strength:", self.gamma)
 
         print("INFO: Laplacian operator:")
         print(self.D)
@@ -262,12 +308,13 @@ class QUBOUnfolder( object ):
         print(Ql)
 
         # total coeff matrix:
-        Q = Qq + Ql
+        self.Q = Qq + Ql
 
         print("DEBUG: matrix of QUBO coefficents Q_ab =:")
-        print(Q)
+        print(self.Q)
+        print("INFO: size of the QUBO coeff matrix is", self.Q.shape)
 
-        return Q
+        return self.Q
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -317,8 +364,8 @@ class QUBOUnfolder( object ):
         print("INFO: Response matrix:")
         print(self._data.R)
 
-        Q = self.make_qubo_matrix()
-        self._bqm = dimod.BinaryQuadraticModel.from_numpy_matrix(Q)
+        self.make_qubo_matrix()
+        self._bqm = dimod.BinaryQuadraticModel.from_numpy_matrix(self.Q)
 
         print("INFO: solving the QUBO model (size=%i)..." % len(self._bqm))
         

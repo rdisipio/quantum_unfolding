@@ -45,6 +45,9 @@ y = np.dot(R0, x) # signal @ reco-level
 z = input_data[obs]['truth']
 d = np.dot(R0, z) # pseduo-data @ reco-level
 
+print("INFO: pseudo-data (before systs):")
+print(d)
+
 n = int( args.encoding )
 N = x.shape[0]
 
@@ -52,16 +55,17 @@ print("INFO: N bins:", N)
 print("INFO: n-bits encoding:", n)
 
 # Systematic uncertainties:
-dy1 = np.array( [1, 1, 1, 1, 1] ) # overall shift
-dy2 = np.array( [1, 2, 3, 2, 1] ) # shape change
-
-unfolder.add_syst_1sigma( dy1 )
-unfolder.add_syst_1sigma( dy2 )
+dy1 = np.array( [1., 1., 1., 1., 1.] ) # overall shift
+dy2 = np.array( [1., 2., 3., 2., 1.] ) # shape change
 
 # strength of systematics in pseudo-data
-sigma_syst = [1,2]
-d += sigma_syst[0]*dy1
-d += sigma_syst[1]*dy2
+sigma_syst = np.array( [1.0, -1.0] )
+
+d = np.add( d, sigma_syst[0]*dy1 )
+d = np.add( d, sigma_syst[1]*dy2 )
+
+print("INFO: pseudo-data (incl effect of systs):")
+print(d)
 
 unfolder.get_data().set_truth( x )
 unfolder.get_data().set_response( R0 )
@@ -69,6 +73,10 @@ unfolder.get_data().set_data( d )
 unfolder.set_regularization( lmbd )
 unfolder.set_syst_penalty( gamma )
 unfolder.set_encoding(n)
+
+unfolder.syst_range = 2. # +- 2sigma
+unfolder.add_syst_1sigma( dy1, n )
+unfolder.add_syst_1sigma( dy2, n )
 
 unfolder.backend = backend
 unfolder.solver_parameters['num_reads'] = num_reads
@@ -100,8 +108,12 @@ y = unfolder._encoder.decode(q)
 energy_true_x = get_energy(bqm, x_b)
 energy_true_z = get_energy(bqm, z_b)
 
+z = np.append( z, sigma_syst )
+
 from scipy import stats
 dof = N - 1
+print("y =", y)
+print("z =", z)
 chi2, p = stats.chisquare(y, z, dof)
 chi2dof = chi2 / float(dof)
 

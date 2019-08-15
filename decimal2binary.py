@@ -127,15 +127,15 @@ class BinaryEncoder(object):
 
         N = len(x)
         
-        n_bits_total = sum( self.rho )
+        n_bits_total = int( sum( self.rho ) )
         x_b = np.zeros( n_bits_total, dtype='uint' )
 
         for i in range(N-1, -1, -1):
-            n = self.rho[i]
+            n = int( self.rho[i] )
             x_d = x[i] - self.alpha[i]
 
             for j in range(0,n,1):
-                a = np.sum(self.rho[:i]) + j
+                a = int( np.sum(self.rho[:i]) + j )
 
                 more_than = Decimal(x_d) // Decimal(self.beta[i][a] )
                 equal_to = int(np.isclose(x_d, self.beta[i][a] ) )
@@ -219,9 +219,9 @@ class BinaryEncoder(object):
         x = np.zeros( N )
         for i in range(N-1, -1, -1):
             x[i] = self.alpha[i]
-            n = self.rho[i]
+            n = int( self.rho[i] )
             for j in range(0, n, 1):
-                a = np.sum(self.rho[:i])+j
+                a = int( np.sum(self.rho[:i])+j )
                 x[i] += self.beta[i][a] * x_b[a]
 
         return x
