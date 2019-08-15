@@ -63,10 +63,10 @@ unfolded_data = {
             'rms'  : np.zeros(nbins),
         },
         #'IB4' : input_data[obs]['IB4'],
-        'sim_gamma0'              : FromFile(f"results_syst.obs_{obs}.sim.reg_0.gamma_0.4bits.csv"),
-        'sim_gamma1'              : FromFile(f"results_syst.obs_{obs}.sim.reg_0.gamma_1.4bits.csv"),
-        'qpu_lonoise_reg0_gamma0' : FromFile(f"results_syst.obs_{obs}.qpu_lonoise.reg_0.gamma_0.4bits.csv"),
-        'qpu_lonoise_reg0_gamma1' : FromFile(f"results_syst.obs_{obs}.qpu_lonoise.reg_0.gamma_1.4bits.csv"),
+        'sim_gamma0'              : FromFile(f"csv/results_syst.obs_{obs}.sim.reg_0.gamma_0.4bits.csv"),
+        'sim_gamma1'              : FromFile(f"csv/results_syst.obs_{obs}.sim.reg_0.gamma_1.4bits.csv"),
+        'qpu_lonoise_reg0_gamma0' : FromFile(f"csv/results_syst.obs_{obs}.qpu_lonoise.reg_0.gamma_0.4bits.csv"),
+        'qpu_lonoise_reg0_gamma1' : FromFile(f"csv/results_syst.obs_{obs}.qpu_lonoise.reg_0.gamma_1.4bits.csv"),
         
         #'hyb_reg0'         : FromFile(f"results.obs_{obs}.hyb.reg_0.csv"),
         #'hyb_reg1'         : FromFile(f"results.obs_{obs}.hyb.reg_1.csv"),
@@ -156,7 +156,7 @@ for imethod in range(1, n_methods+1):
 
 
 # ax_syst.get_yaxis().set_visible(False)
-ax_syst.set_xlim(-0.5, 4.5)
+ax_syst.set_xlim(-2.5, 2.5)
 ax_syst.set_ylim(-0.5, Nsyst-0.5)
 ax_syst.xaxis.label.set_fontsize(14)
 ax_syst.set_xlabel("$\lambda$")
