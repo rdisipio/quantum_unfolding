@@ -10,12 +10,12 @@ import matplotlib.pyplot as plt
 from decimal2binary import *
 from unfolder import *
 
-np.set_printoptions(precision=1, linewidth=400, suppress=True)
+np.set_printoptions(precision=1, linewidth=500, suppress=True)
 
 parser = argparse.ArgumentParser("Quantum unfolding")
 parser.add_argument('-o', '--observable', default='peak')
 parser.add_argument('-l', '--lmbd', default=0)
-parser.add_argument('-n', '--nreads', default=100)
+parser.add_argument('-n', '--nreads', default=5000)
 parser.add_argument('-b', '--backend', default='sim')  # [cpu, sim, qpu, hyb, qbs]
 parser.add_argument('-e', '--encoding', default=4)
 parser.add_argument('-f', '--file', default=None)
@@ -42,9 +42,6 @@ y = np.dot(R0, x) # signal @ reco-level
 z = input_data[obs]['truth']
 d = np.dot(R0, z) # pseduo-data @ reco-level
 
-# Response matrix
-R = R0 # nominal: can be extended in case of systematics
-
 n = int( args.encoding )
 N = x.shape[0]
 
@@ -54,7 +51,7 @@ print("INFO: n-bits encoding:", n)
 lmbd = float(args.lmbd)  # regularization strength
 
 unfolder.get_data().set_truth( x )
-unfolder.get_data().set_response( R )
+unfolder.get_data().set_response( R0 )
 unfolder.get_data().set_data( d )
 unfolder.set_regularization( lmbd )
 unfolder.set_encoding(n)

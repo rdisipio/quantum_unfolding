@@ -141,12 +141,15 @@ class QUBOUnfolder( object ):
     
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def set_syst_1sigma( self, h_syst : np.array ):
-        self.syst = np.copy( h_syst )
-        self.n_syst = self.syst.shape[0]
+    def add_syst_1sigma( self, h_syst : np.array, nbits=None ):
+        self.syst.append( np.copy( h_syst ) )
+        self.n_syst += 1
+
+        if nbits == None:
+            self._encoder.beta # <<<< FIX HERE
     
-    def get_syst_1sigma( self ):
-        return self.syst
+    def get_syst_1sigma( self, i : int):
+        return self.syst[i]
     
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -201,19 +204,28 @@ class QUBOUnfolder( object ):
 
         # systematics
         self.S = np.zeros( [Nbins, Nbins] )
+
         if self.n_syst > 0:
             self.S = np.block([
                     [np.zeros([Nbins, Nbins]), np.zeros([Nbins,Nsyst])], 
                     [np.zeros([Nsyst, Nbins]), np.eye(Nsyst)]
                 ])
-            S = self.gamma * S
 
             # in case Nsyst>0, extend vectors and laplacian
             self.D = np.block([
                 [self.D,                   np.zeros([Nbins, Nsyst])],
                 [np.zeros([Nsyst, Nbins]), np.zeros([Nsyst, Nsyst])] 
-
               ])
+
+            # matrix of systematic shifts
+            T = np.vstack( self.syst ).T
+            print("INFO: matrix of systematic shifts:")
+            print(T)
+
+            # update response uber-matrix
+            self._data.R = np.block([self._data.R, T])
+            print("INFO: response uber-matrix:")
+            print(self._data.R)
 
         print("INFO: Laplacian operator:")
         print(self.D)
@@ -224,14 +236,15 @@ class QUBOUnfolder( object ):
         beta = self._encoder.beta
         R = self._data.R
         D = self.D
+        S = self.S
 
-        W = np.einsum( 'ij,ik', R, R ) + self.lmbd*np.einsum( 'ij,ik', D, D)
+        W = np.einsum( 'ij,ik', R, R ) + \
+            self.lmbd*np.einsum( 'ij,ik', D, D) + \
+            self.gamma*np.einsum( 'ij,ik', S, S)
         print("DEBUG: W_ij =")
         print(W)
 
-        n_bits_tot = sum( self.rho )
-
-        # Using Einstein notation (keeping finger crossed...)
+        # Using Einstein notation
 
         # quadratic constraints
         Qq = 2 * np.einsum( 'jk,ja,kb->ab', W, beta, beta )
