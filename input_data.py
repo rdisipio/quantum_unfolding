@@ -16,8 +16,8 @@ input_data = {
       # $ ./unfolding_baseline.py -o falling 
       # NB: does works only with Python 2.7, blame ROOT
       'falling' : {
-            'truth' : np.array( [14, 7, 5, 4, 2] ),
-            'pdata' : np.array( [15, 6, 4, 2, 1] ),
+            'truth' : np.array( [1124, 266, 88, 30, 7] ),
+            'pdata' : np.array( [1110, 270, 82, 32, 5] ),
             'IB4' : {
                   'mean' : np.array( [19.9,  8.,   3.2,  1.2,  0.4] ),
                   'rms' : np.array( [6.7, 1.6, 1.3, 0.7, 0.5]),

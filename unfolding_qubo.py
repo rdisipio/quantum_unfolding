@@ -38,8 +38,8 @@ x = input_data[obs]['truth']
 y = np.dot(R0, x) # signal @ reco-level
 
 # Pseudo-data (to be unfolded)
-#z = input_data[obs]['pdata']
-z = input_data[obs]['truth']
+z = input_data[obs]['pdata']
+#z = input_data[obs]['truth']
 d = np.dot(R0, z) # pseduo-data @ reco-level
 
 n = int( args.encoding )

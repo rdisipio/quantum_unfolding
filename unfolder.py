@@ -390,9 +390,11 @@ class QUBOUnfolder( object ):
 
             print("INFO: finding optimal minor embedding...")
 
-            n_tries = 5 # this might depend on encoding i.e. number of bits
+            n_bits_avg = np.mean(self._encoder.rho)
+            thr = 4. / float(self.n_bins_truth)
+            n_tries = 5 if n_bits_avg < thr else 10
             
-            J = qubo_quadratic_terms_from_np_array(Q)
+            J = qubo_quadratic_terms_from_np_array(self.Q)
             embedding = self.find_embedding( J, n_tries )
 
             print("INFO: creating DWave sampler...")
