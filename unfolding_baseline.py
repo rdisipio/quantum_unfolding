@@ -8,10 +8,9 @@ from ROOT import *
 import numpy as np
 import scipy.stats
 
-from decimal2binary import *
 from input_data import *
 
-np.set_printoptions(precision=1, linewidth=200, suppress=True)
+np.set_printoptions(precision=2, linewidth=500, suppress=True)
 
 ###########################
 
