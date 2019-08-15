@@ -208,7 +208,7 @@ class QUBOUnfolder( object ):
 
             for j in range(n_bits):
                 a = int( np.sum(self.rho_systs[:isyst]) + j )
-                w = 2*self.syst_range / float(n_bits)
+                w = 2*self.syst_range / np.power(2,n_bits)
                 beta_syst[isyst][a] = w * np.power(2, n_bits-j-1)
             
             self._encoder.rho   = np.append( self._encoder.rho, [n_bits] )

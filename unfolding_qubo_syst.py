@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from decimal2binary import *
 from unfolder import *
 
-np.set_printoptions(precision=1, linewidth=500, suppress=True)
+np.set_printoptions(precision=2, linewidth=500, suppress=True)
 
 parser = argparse.ArgumentParser("Quantum unfolding")
 parser.add_argument('-o', '--observable', default='peak')
