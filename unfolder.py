@@ -203,12 +203,12 @@ class QUBOUnfolder( object ):
         for isyst in range(self.n_syst):
             n_bits = self.rho_systs[isyst]
 
-            alpha = ( 1. - self.syst_range )
+            alpha = -self.syst_range
             self._encoder.alpha = np.append( self._encoder.alpha, [alpha] )
 
             for j in range(n_bits):
                 a = int( np.sum(self.rho_systs[:isyst]) + j )
-                w = 2 * self.syst_range / float(n_bits)
+                w = 2*self.syst_range / float(n_bits)
                 beta_syst[isyst][a] = w * np.power(2, n_bits-j-1)
             
             self._encoder.rho   = np.append( self._encoder.rho, [n_bits] )
@@ -221,10 +221,9 @@ class QUBOUnfolder( object ):
             n_bits_0 = self._encoder.beta.shape[1]
 
             self._encoder.beta = np.block([
-                            [self._encoder.beta,                 np.zeros( [ n_bins, n_bits_syst ]) ],
+                            [self._encoder.beta,                      np.zeros( [ n_bins, n_bits_syst ]) ],
                             [np.zeros( [self.n_syst, n_bits_0] ),     beta_syst ] 
                         ])
-
 
         print("INFO: alpha =", self._encoder.alpha)
         print("INFO: beta =")
