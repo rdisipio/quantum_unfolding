@@ -54,8 +54,8 @@ def FromFile( csv_file ):
 from input_data import *
 
 #z = np.hstack( [input_data[obs]['pdata'], sigma_syst] )
-z = input_data[obs]['pdata']
-nbins = input_data[obs]['pdata'].shape[0]
+z = input_data[obs]['truth']
+nbins = input_data[obs]['truth'].shape[0]
 
 unfolded_data = {
         'pdata' : {
@@ -156,7 +156,7 @@ for imethod in range(1, n_methods+1):
 
 
 # ax_syst.get_yaxis().set_visible(False)
-ax_syst.set_xlim(-2.5, 2.5)
+ax_syst.set_xlim(-1.5, 1.5)
 ax_syst.set_ylim(-0.5, Nsyst-0.5)
 ax_syst.xaxis.label.set_fontsize(14)
 ax_syst.set_xlabel("$\lambda$")

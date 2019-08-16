@@ -55,7 +55,7 @@ args = parser.parse_args()
 
 obs = args.observable
 
-z = input_data[obs]['pdata']
+z = input_data[obs]['truth']
 nbins = z.shape[0]
 
 pdata = {
@@ -90,7 +90,7 @@ colors = {
     'lower noise 4bits' : 'green',
     'lower noise 8bits' : "blue",
     'regular noise 4bits' : 'red',
-    'regular noise 8bits' : 'gold'
+    'regular noise 8bits' : 'orange'
 }
 facecolors = {
     'lower noise 4bits' : 'green',
@@ -114,13 +114,13 @@ plt.step( list(ibin),
             [pdata['mean'][0]]+list(pdata['mean']),
             label=labels['pdata'], color='black', linestyle='dashed')
 
-#sns.boxplot( x='bin', y='unf',
-#            hue='method',
-#             palette=grayscale,
- #            fliersize=0,
- #            data=df,
- #             orient='v' 
- #       )
+sns.boxplot( x='bin', y='unf',
+            hue='method',
+             palette=grayscale,
+             fliersize=0,
+             data=df,
+              orient='v' 
+        )
 #stripplot
 
 sns.swarmplot( x='bin', y='unf', 
@@ -133,10 +133,10 @@ sns.swarmplot( x='bin', y='unf',
                 size=6, lw=4, edgecolor='black',
                 )
 
-#handles, labels = ax.get_legend_handles_labels()
-#new_handles = [ handles[0], handles[5], handles[6], handles[7], handles[8] ]
-#new_labels  = [ labels[0], labels[5], labels[6], labels[7], labels[8] ]
-#plt.legend(new_handles, new_labels)
+handles, labels = ax.get_legend_handles_labels()
+new_handles = [ handles[0], handles[5], handles[6], handles[7], handles[8] ]
+new_labels  = [ labels[0], labels[5], labels[6], labels[7], labels[8] ]
+plt.legend(new_handles, new_labels)
 
 plt.xlim(-1, 5)
 
