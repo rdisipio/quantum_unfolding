@@ -284,7 +284,7 @@ class QUBOUnfolder( object ):
         S = self.S
 
         W = np.einsum( 'ij,ik', R, R ) + \
-            self.lmbd*np.einsum( 'ij,ik', D, D) + \
+            self.lmbd*np.einsum( 'ij,ik', D, D) - \
             self.gamma*np.einsum( 'ij,ik', S, S)
         print("DEBUG: W_ij =")
         print(W)
@@ -300,7 +300,7 @@ class QUBOUnfolder( object ):
 
         # linear constraints
         Ql = 2*np.einsum( 'jk,k,ja->a', W, alpha, beta ) + \
-             np.einsum( 'jk,ja,ka->a', W, beta, beta ) - \
+             np.einsum( 'jk,ja,ka->a', W, beta, beta ) + \
              2* np.einsum( 'ij,i,ja->a', R, d, beta )
         Ql = np.diag(Ql)
         print("DEBUG: linear coeff Ql =")

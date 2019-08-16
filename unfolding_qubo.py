@@ -109,4 +109,4 @@ print(', # E =', energy_bestfit, "chi2/dof = %.2f" % chi2dof)
 
 if not args.file == None:
      f = open( args.file, 'a')
-     np.savetxt( f, y.reshape(1, y.shape[0]), fmt="%d", delimiter="," )
+     np.savetxt( f, y.reshape(1, y.shape[0]), fmt="%f", delimiter="," )
