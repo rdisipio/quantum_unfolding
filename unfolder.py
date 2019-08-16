@@ -298,7 +298,7 @@ class QUBOUnfolder( object ):
 
         # linear constraints
         Ql = 2*np.einsum( 'jk,k,ja->a', W, alpha, beta ) + \
-             np.einsum( 'jk,ja,ka->a', W, beta, beta ) + \
+             np.einsum( 'jk,ja,ka->a', W, beta, beta ) - \
              2* np.einsum( 'ij,i,ja->a', R, d, beta )
         Ql = np.diag(Ql)
         print("DEBUG: linear coeff Ql =")
