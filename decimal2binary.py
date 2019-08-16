@@ -138,7 +138,7 @@ class BinaryEncoder(object):
                 a = int( np.sum(self.rho[:i]) + j )
 
                 more_than = Decimal(x_d) // Decimal(self.beta[i][a] )
-                equal_to = int(np.isclose(x_d, self.beta[i][a] ) )
+                equal_to = np.isclose(x_d, self.beta[i][a] )
 
                 x_b[a] = min([1, more_than or equal_to ])
                 
@@ -194,8 +194,9 @@ class BinaryEncoder(object):
         for i in range(N-1, -1, -1):
             n = self.rho[i]
             self.alpha[i] = ( 1. - auto_range ) * x[i]
-            w = 2 * auto_range*x[i] / float(n)
-            
+            #w = 2 * auto_range*x[i] / float(n)
+            w = 2 * auto_range*x[i] / np.power(2,n)
+
             for j in range(n):
                 a = np.sum(self.rho[:i])+j
                 self.beta[i][a] = w * np.power(2, n-j-1)

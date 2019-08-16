@@ -234,8 +234,6 @@ class QUBOUnfolder( object ):
 
     def make_qubo_matrix(self):
     
-        n_params = self.n_bins_truth + self.n_syst
-
         Nbins = self.n_bins_truth
         Nsyst  = self.n_syst
 
@@ -284,7 +282,7 @@ class QUBOUnfolder( object ):
         S = self.S
 
         W = np.einsum( 'ij,ik', R, R ) + \
-            self.lmbd*np.einsum( 'ij,ik', D, D) - \
+            self.lmbd*np.einsum( 'ij,ik', D, D) + \
             self.gamma*np.einsum( 'ij,ik', S, S)
         print("DEBUG: W_ij =")
         print(W)
@@ -307,13 +305,13 @@ class QUBOUnfolder( object ):
         print(Ql)
 
         # total coeff matrix:
-        self.Q = Qq + Ql
+        Q = Qq + Ql
 
         print("DEBUG: matrix of QUBO coefficents Q_ab =:")
-        print(self.Q)
-        print("INFO: size of the QUBO coeff matrix is", self.Q.shape)
+        print(Q)
+        print("INFO: size of the QUBO coeff matrix is", Q.shape)
 
-        return self.Q
+        return Q
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -332,10 +330,10 @@ class QUBOUnfolder( object ):
         config_file = "dwave.config"
         if self.backend in [Backends.qpu, Backends.qpu_lonoise ]:
             config_file = "dwave.conf.wittek-lownoise"
-        elif self.backend == Backends.qpu_hinoise:
+        elif self.backend in [ Backends.qpu_hinoise ]:
             config_file = "dwave.conf.wittek-hinoise"
         else:
-            raise Exception( "ERROR: unknown QPU backend", args.backend)
+            raise Exception( "ERROR: unknown QPU backend")
 
         return config_file
 
@@ -363,7 +361,7 @@ class QUBOUnfolder( object ):
         print("INFO: Response matrix:")
         print(self._data.R)
 
-        self.make_qubo_matrix()
+        self.Q = self.make_qubo_matrix()
         self._bqm = dimod.BinaryQuadraticModel.from_numpy_matrix(self.Q)
 
         print("INFO: solving the QUBO model (size=%i)..." % len(self._bqm))
@@ -374,10 +372,10 @@ class QUBOUnfolder( object ):
             self._status = StatusCode.success
         
         elif self.backend in [ Backends.sim ]:
-            print("INFO: running on simulated annealer (neal)")
+            num_reads = self.solver_parameters['num_reads']
+            print("INFO: running on simulated annealer (neal), num_reads=",num_reads)
 
             sampler = neal.SimulatedAnnealingSampler()
-            num_reads = self.solver_parameters['num_reads']
             self._results = sampler.sample( self._bqm, num_reads=num_reads).aggregate()
             self._status = StatusCode.success
 
@@ -402,7 +400,8 @@ class QUBOUnfolder( object ):
 
             if self.backend in [ Backends.qpu, Backends.qpu_hinoise, Backends.qpu_lonoise ]:
                 print("INFO: Running on QPU")
-                self._results = sampler.sample( self._bqm, **self.solver_parameters).aggregate()
+                params = self.solver_parameters
+                self._results = sampler.sample( self._bqm, **params).aggregate()
                 self._status = StatusCode.success
             
             elif self.backend in [ Backends.hyb ]:

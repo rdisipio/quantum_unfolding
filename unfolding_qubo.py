@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from decimal2binary import *
 from unfolder import *
 
-np.set_printoptions(precision=1, linewidth=500, suppress=True)
+np.set_printoptions(precision=3, linewidth=500, suppress=True)
 
 parser = argparse.ArgumentParser("Quantum unfolding")
 parser.add_argument('-o', '--observable', default='peak')
@@ -38,8 +38,8 @@ x = input_data[obs]['truth']
 y = np.dot(R0, x) # signal @ reco-level
 
 # Pseudo-data (to be unfolded)
-z = input_data[obs]['pdata']
-#z = input_data[obs]['truth']
+#z = input_data[obs]['pdata']
+z = input_data[obs]['truth'] # for closure test
 d = np.dot(R0, z) # pseduo-data @ reco-level
 
 n = int( args.encoding )
@@ -68,6 +68,7 @@ status = unfolder.solve()
 print("INFO: ...done.")
 if not status == StatusCode.success:
     print("ERROR: something went wrong during execution.")
+#print(unfolder._results)
 
 if dry_run:
     print("INFO: dry run.")
