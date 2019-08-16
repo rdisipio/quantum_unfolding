@@ -23,4 +23,13 @@ done
 csvfile="csv/results_syst.obs_${obs}.${backend}.reg_${reg}.gamma_${gamma}.${enc}bits.csv" 
 rm -f ${csvfile}
 
-seq ${nruns} | parallel --progress ./unfolding_qubo_syst.py -e ${enc} -o ${obs} -l ${reg} -g ${gamma} -b ${backend} -f ${csvfile}
+cmdfile="parallel_cmd_syst.sh"
+touch $cmdfile
+chmod +x $cmdfile
+for i in $(seq ${nruns})
+do
+  echo "./unfolding_qubo_syst.py -e ${enc} -o ${obs} -l ${reg} -b ${backend} -g ${gamma} -f ${csvfile}" >> $cmdfile
+done
+parallel < $cmdfile
+rm -f $cmdfile
+echo "INFO: finished."
