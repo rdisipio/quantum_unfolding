@@ -21,8 +21,6 @@ done
 [ ! -d csv ] && mkdir -p csv
 csvfile="csv/results.obs_${obs}.${backend}.reg_${reg}.${enc}bits.csv" 
 rm -f ${csvfile}
-
-seq ${nruns} | parallel --progress ./unfolding_qubo.py -e ${enc} -o ${obs} -l ${reg} -b ${backend} -f ${csvfile}
  
 cmdfile="parallel_cmd.sh"
 touch $cmdfile
