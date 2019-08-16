@@ -3,7 +3,7 @@
 # 4-bits encoding
 for obs in peak falling
 do
-  for backend in qpu_lonoise qpu_hinoise
+  for backend in qpu_lonoise qpu_hinoise sim
   do
     for lmbd in 0 0.5 1
     do
@@ -13,7 +13,7 @@ do
 done
 
 # 8-bits encoding
-for backend in qpu_lonoise qpu_hinoise
+for backend in qpu_lonoise qpu_hinoise sim
 do
    ./unfold_qubo_parallel.sh -e 8 -o peak -b ${backend}
 done
@@ -22,7 +22,7 @@ done
 
 for obs in peak falling
 do
-  for backend in qpu_lonoise qpu_hinoise
+  for backend in qpu_lonoise qpu_hinoise sim
   do
     for gamma in 0 0.5 1
     do
