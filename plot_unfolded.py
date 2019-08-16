@@ -22,7 +22,7 @@ known_methods = [
 n_methods = len(known_methods)
 
 labels = {
-    'pdata'             : "True value",
+    'truth'             : "True value",
     'IB4'               : "D\'Agostini ItrBayes ($N_{itr}$=4)",
     'sim'               : "QUBO (CPU, Neal)",
     'qpu_lonoise_reg0'  : "QUBO (QPU, lower noise, $\lambda$=0)",
@@ -55,11 +55,11 @@ args = parser.parse_args()
 nbits = int(args.encoding)
 obs = args.observable
 
-z = input_data[obs]['pdata']
+z = input_data[obs]['truth']
 nbins = z.shape[0]
 
 unfolded_data = {
-        'pdata' : {
+        'truth' : {
             'mean' : z,
             'rms'  : np.zeros(nbins),
         },
@@ -85,12 +85,12 @@ fig, ax = plt.subplots(tight_layout=True, figsize=(10, 6))
 ibin = np.arange(1,nbins+1) # position along the x-axis
 
 print("Truth")
-print(unfolded_data['pdata']['mean'])
+print(unfolded_data['truth']['mean'])
 
 # First, plot truth-level distribution
 plt.step([0] + list(ibin), 
-        [unfolded_data['pdata']['mean'][0]]+list(unfolded_data['pdata']['mean']),
-        label=labels['pdata'], color='black', linestyle='dashed')
+        [unfolded_data['truth']['mean'][0]]+list(unfolded_data['truth']['mean']),
+        label=labels['truth'], color='black', linestyle='dashed')
 
 
 #plt.step(ibin, unfolded_data['pdata']['mean'], where='mid',
