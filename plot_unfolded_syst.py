@@ -11,6 +11,8 @@ rc('font',**{'family':'serif','serif':['Palatino']})
 rc('text', usetex=True)
 rc('legend',**{'fontsize': 13})
 
+np.set_printoptions(precision=2, linewidth=500, suppress=True)
+
 parser = argparse.ArgumentParser("Quantum unfolding plotter")
 parser.add_argument('-o', '--observable', default='peak')
 parser.add_argument('-e', '--encoding', default=4)
@@ -46,7 +48,8 @@ def FromFile( csv_file ):
 
     return {
         'mean' : np.mean( data, axis=0 ),
-        'rms'  : np.std( data, axis=0)
+        'rms'  : np.std( data, axis=0),
+        'corr'   : np.corrcoef(data),
     }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -167,3 +170,8 @@ ax_syst.set_yticklabels(["norm", "shape"])
 
 plt.show()
 fig.savefig(f"unfolded_{obs}_syst.pdf")
+
+for method in known_methods:
+    print("INFO: correlation matrix for method", method)
+    print(unfolded_data[method]['corr'])
+    print()
