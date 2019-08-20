@@ -49,7 +49,7 @@ def FromFile( csv_file ):
     return {
         'mean' : np.mean( data, axis=0 ),
         'rms'  : np.std( data, axis=0),
-        'corr'   : np.corrcoef(data),
+        'corr'   : np.corrcoef(data, rowvar=False),
     }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -141,14 +141,14 @@ for isyst in range(Nsyst):
 
 for imethod in range(1, n_methods+1):
     method = known_methods[imethod-1]
-    print(method, unfolded_data[method]['mean'][Nbins:])
+    #print(method, unfolded_data[method]['mean'][Nbins:])
 
     for isyst in range(Nsyst):
 
         x = unfolded_data[method]['mean'][Nbins:][isyst]
         y = isyst - 0.05*imethod + 0.1
         dx = unfolded_data[method]['rms'][Nbins:][isyst]
-        #print(imethod,x,y,dx)
+        print("method:", method, "syst:", isyst,x,dx)
         ax_syst.errorbar(x,
                          y,
                          xerr=dx,
