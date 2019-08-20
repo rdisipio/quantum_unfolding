@@ -4,6 +4,7 @@ import argparse
 
 import numpy as np
 import pandas as pd
+import seaborn as sns
 import matplotlib.pyplot as plt
 
 from matplotlib import rc
@@ -170,8 +171,3 @@ ax_syst.set_yticklabels(["norm", "shape"])
 
 plt.show()
 fig.savefig(f"unfolded_{obs}_syst.pdf")
-
-for method in known_methods:
-    print("INFO: correlation matrix for method", method)
-    print(unfolded_data[method]['corr'])
-    print()
