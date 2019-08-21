@@ -1,6 +1,5 @@
 """
-Ncpol2SDPA: A converter from commutative and noncommutative polynomial
-optimization problems to sparse SDP input formats.
+Unfolding as quantum annealing
 """
 
 try:
