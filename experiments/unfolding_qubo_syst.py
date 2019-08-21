@@ -7,8 +7,9 @@ import datetime as dt
 import numpy as np
 from scipy import optimize
 import matplotlib.pyplot as plt
-from decimal2binary import *
-from unfolder import *
+
+from quantum_unfolding import Backends, get_energy, QUBOUnfolder, StatusCode
+from quantum_unfolding.decimal2binary import *
 
 np.set_printoptions(precision=2, linewidth=500, suppress=True)
 
@@ -56,7 +57,7 @@ print("INFO: n-bits encoding:", n)
 
 # Systematic uncertainties:
 dy1 = np.array([1., 1., 1., 1., 1.])  # overall shift
-dy2 = np.array([1., 2., 3., 2., 1.])  # shape change
+dy2 = np.array([3., 2., 1., 2., 3.])  # shape change
 
 # strength of systematics in pseudo-data
 sigma_syst = np.array([1.0, -1.0])
