@@ -328,7 +328,7 @@ class QUBOUnfolder( object ):
 
     def get_config_file(self):
         config_file = "dwave.config"
-        if self.backend in [Backends.qpu, Backends.qpu_lonoise ]:
+        if self.backend in [Backends.qpu, Backends.qpu_lonoise, Backends.hyb ]:
             config_file = "dwave.conf.wittek-lownoise"
         elif self.backend in [ Backends.qpu_hinoise ]:
             config_file = "dwave.conf.wittek-hinoise"
@@ -413,14 +413,14 @@ class QUBOUnfolder( object ):
                 # hybrid.EnergyImpactDecomposer(size=len(bqm), rolling_history=0.15)
                 iteration = hybrid.RacingBranches(
                     hybrid.InterruptableTabuSampler(),
-                    hybrid.EnergyImpactDecomposer(size=len(bqm)//2, rolling=True)
+                    hybrid.EnergyImpactDecomposer(size=len(self._bqm)//2, rolling=True)
                     | hybrid.QPUSubproblemAutoEmbeddingSampler(num_reads=num_reads)
                     | hybrid.SplatComposer()
                 ) | hybrid.ArgMin()
-                workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=3)
-                #workflow = hybrid.Loop(iteration, max_iter=20, convergence=3)
+                #workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=3)
+                workflow = hybrid.Loop(iteration, max_iter=20, convergence=3)
 
-                init_state = hybrid.State.from_problem(bqm)
+                init_state = hybrid.State.from_problem(self._bqm)
                 self._results = workflow.run(init_state).result().samples
                 self._status = StatusCode.success
 

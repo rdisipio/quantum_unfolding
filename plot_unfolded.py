@@ -15,9 +15,12 @@ known_methods = [
     'IB4',
     'sim',
     'qpu_lonoise_reg0',
+    'qpu_lonoise_reg01',
+    'qpu_lonoise_reg025',
+    #'qpu_lonoise_reg05',
     'qpu_lonoise_reg1',
-    'qpu_hinoise_reg0',
-    'qpu_hinoise_reg1',
+    #'qpu_hinoise_reg0',
+    #'qpu_hinoise_reg1',
 ]
 n_methods = len(known_methods)
 
@@ -25,10 +28,13 @@ labels = {
     'truth'             : "True value",
     'IB4'               : "D\'Agostini ItrBayes ($N_{itr}$=4)",
     'sim'               : "QUBO (CPU, Neal)",
-    'qpu_lonoise_reg0'  : "QUBO (QPU, lower noise, $\lambda$=0)",
-    'qpu_lonoise_reg1'  : "QUBO (QPU, lower noise, $\lambda$=1)",
-    'qpu_hinoise_reg0'  : "QUBO (QPU, regular noise, $\lambda$=0)",
-    'qpu_hinoise_reg1'  : "QUBO (QPU, regular noise, $\lambda$=1)",
+    'qpu_lonoise_reg0'  : "QUBO (QPU, $\lambda=0$)",
+    'qpu_lonoise_reg1'  : "QUBO (QPU, $\lambda=1$)",
+    'qpu_lonoise_reg01': "QUBO (QPU, $\lambda=0.1$)",
+    'qpu_lonoise_reg025': "QUBO (QPU, $\lambda=0.25$)",
+   # 'qpu_lonoise_reg05' : "QUBO (QPU, $\lambda=0.5$)",
+    'qpu_hinoise_reg0'  : "QUBO (QPU, $\lambda=0$)",
+    'qpu_hinoise_reg1'  : "QUBO (QPU, $\lambda=1$)",
     'hyb_reg0'          : "QUBO (Hybrid, $\lambda$=0)",
     'hyb_reg1'          : "QUBO (Hybrid, $\lambda$=1)",
 }
@@ -69,15 +75,18 @@ unfolded_data = {
         'qpu_lonoise_reg1' : FromFile(f"csv/results.obs_{obs}.qpu_lonoise.reg_1.{nbits}bits.csv"),
         'qpu_hinoise_reg0' : FromFile(f"csv/results.obs_{obs}.qpu_hinoise.reg_0.{nbits}bits.csv"),
         'qpu_hinoise_reg1' : FromFile(f"csv/results.obs_{obs}.qpu_hinoise.reg_1.{nbits}bits.csv"),
+        'qpu_lonoise_reg01' : FromFile(f"csv/results.obs_{obs}.qpu_lonoise.reg_0.1.{nbits}bits.csv"),
+        'qpu_lonoise_reg025' : FromFile(f"csv/results.obs_{obs}.qpu_lonoise.reg_0.25.{nbits}bits.csv"),
+        'qpu_lonoise_reg05' : FromFile(f"csv/results.obs_{obs}.qpu_lonoise.reg_0.5.{nbits}bits.csv"),
         #'hyb_reg0'         : FromFile(f"csv/results.obs_{obs}.hyb.reg_0.csv"),
         #'hyb_reg1'         : FromFile(f"csv/results.obs_{obs}.hyb.reg_1.csv"),
 }
 
 
-colors = ['black', 'red', 'gold', 'seagreen', 'blue','violet','cyan']
+colors = ['black', 'red', 'gold', 'seagreen', 'blue','violet','cyan','navyblue']
 #          'gold', 'cyan', 'violet', 'navyblue']
 # colors = ['black', 'salmon', 'royalblue', 'lightgreen', 'gold']
-markers = ['o', 'v', '^', 'D', 'o', 'D', 'o']
+markers = ['o', 'v', '^', 'D', 'o', 'D', 'o','D']
 bar_width = 0.1
 
 fig, ax = plt.subplots(tight_layout=True, figsize=(10, 6))

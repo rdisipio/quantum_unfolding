@@ -26,13 +26,17 @@ nbits = int(args.encoding)
 obs = args.observable
 
 known_methods = [
-    'qpu_lonoise_reg0_gamma0',
-    'qpu_lonoise_reg0_gamma1',
-    'qpu_lonoise_reg0_gamma0_48bits',
+    'qpu_hinoise_reg0',
+    'qpu_lonoise_reg0',
+#    'qpu_lonoise_reg0_gamma0',
+#    'qpu_lonoise_reg0_gamma1',
+#    'qpu_lonoise_reg0_gamma0_48bits',
 ]
 n_methods = len(known_methods)
 
 labels = {
+    'qpu_hinoise_reg0'          : "QPU, regular noise",
+    'qpu_lonoise_reg0'          : "QPU, lower noise",
     'qpu_lonoise_reg0_gamma0'  : "QPU, lower noise, $\gamma$=0",
     'qpu_lonoise_reg0_gamma1'  : "QPU, lower noise, $\gamma$=1",
     'qpu_lonoise_reg0_gamma0_48bits'  : "QPU, lower noise, $\gamma$=0, encoding=(4,8)"
@@ -52,6 +56,8 @@ def FromFile( csv_file ):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 unfolded_data = {
+        'qpu_hinoise_reg0'        : FromFile(f"csv/results.obs_{obs}.qpu_hinoise.reg_0.4bits.csv"),
+        'qpu_lonoise_reg0'        : FromFile(f"csv/results.obs_{obs}.qpu_lonoise.reg_0.4bits.csv"),
         'qpu_lonoise_reg0_gamma0' : FromFile(f"csv/results_syst.obs_{obs}.qpu_lonoise.reg_0.gamma_0.4bits.csv"),
         'qpu_lonoise_reg0_gamma1' : FromFile(f"csv/results_syst.obs_{obs}.qpu_lonoise.reg_0.gamma_1.4bits.csv"),
         'qpu_lonoise_reg0_gamma0_48bits' : FromFile(f"csv/results_syst.obs_{obs}.qpu_lonoise.reg_0.gamma_0.48bits.csv"),
@@ -59,7 +65,6 @@ unfolded_data = {
 
 Nbins = 5
 Nsyst = 2
-Nparams = Nbins + Nsyst
 
 #f, ax = plt.subplots(figsize=(11, 9))
 
@@ -71,12 +76,18 @@ for method in known_methods:
     #mask[np.triu_indices_from(mask)] = True
     print(unfolded_data[method]['corr'])
 
+    Nparams = Nbins
+    names = ["bin1","bin2","bin3","bin4","bin5"]
+    if "gamma" in method:
+        Nparams += Nsyst
+        names += [ "norm", "shape" ]
+
     f = plt.figure()
 
     ax = f.add_subplot()
 
     cax = ax.imshow( corr, 
-                cmap=plt.cm.get_cmap('RdBu_r'), 
+                cmap=plt.cm.get_cmap('bwr'), 
                 vmin=-1, vmax=1)
     f.colorbar(cax)
     #plt.title( labels[method])
@@ -85,7 +96,7 @@ for method in known_methods:
     ticks = np.arange( Nparams )
     ax.set_xticks(ticks)
     ax.set_yticks(ticks)
-    names = ["bin1","bin2","bin3","bin4","bin5","norm", "shape"]
+    
     ax.set_xticklabels(names)
     ax.set_yticklabels(names)
     plt.xticks(rotation=45)
