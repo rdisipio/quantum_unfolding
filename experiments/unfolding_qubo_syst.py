@@ -62,7 +62,7 @@ dy1 = np.array([5., 4., 3., 2., 1.])  # shape change
 
 # strength of systematics in pseudo-data
 #sigma_syst = np.array([1.0, -1.0])
-sigma_syst = np.array( [-0.75] )
+#sigma_syst = np.array( [-0.75] )
 
 d = np.add(d, sigma_syst[0] * dy1)
 #d = np.add(d, sigma_syst[1] * dy2)
