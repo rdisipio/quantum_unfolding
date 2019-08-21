@@ -1,3 +1,4 @@
+dimod
 dwave-system
 dwave-neal
 hyperopt

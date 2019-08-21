@@ -6,7 +6,8 @@ Kyle Cormier, Riccardo Di Sipio, Peter Wittek . [Unfolding as quantum annealing]
 
 Check out package with `git clone https://github.com/rdisipio/quantum_unfolding.git`. The required packages are list in `requirements.txt`. For the baseline results, you will also need RooUnfold; see the instructions below.
 
-## Test out calculation
+# Testing out calculations
+At the heart of unfolding is a matrix inversion. This problem is mapped to regularized, constrained least-squares fit that is numerically more stable even on classical hardware. In turn, we convert it to a quadratic unconstrained binary optimization problem to solve it on a quantum annealer.
 
 In the file `toy_unfolding_classical.py` you can modify the definition of xedges, of the truth-level vector (`x`) and the response matrix (`R`). The code compares the product `Rx=y` carried out with decimal and binary representation, the latter to be used for the quantum computation.
 
@@ -30,7 +31,7 @@ To test the unfolding:
 ./toy_unfolding_classical.py
 ```
 
-Test QUBO unfolding using DWave dimod package:
+Test QUBO unfolding using the `dimod` package:
 ```
 ./unfolding_qubo.py -l 0 # no regularization
 ./unfolding_qubo.py -l 1 # regularization strength = 1
@@ -53,7 +54,7 @@ Using e.g. a 5x5 matrix:
 ./unfolding_qubo.py -l 0 -n 10000 -b sim
 ```
 
-# Unfold with standard methods
+# Unfolding with standard methods
 
 Install RooUnfold:
 
