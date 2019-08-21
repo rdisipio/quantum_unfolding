@@ -25,5 +25,5 @@ rm -f ${csvfile}
 
 for i in $(seq ${nruns})
 do
-   ./unfolding_qubo_syst.py -e ${enc} -o ${obs} -l ${reg} -g ${gamma} -b ${backend} -f ${csvfile} | tail -n 1
+   unfolding_qubo_syst.py -e ${enc} -o ${obs} -l ${reg} -g ${gamma} -b ${backend} -f ${csvfile} | tail -n 1
 done

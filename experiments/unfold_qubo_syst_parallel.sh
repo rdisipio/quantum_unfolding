@@ -29,7 +29,7 @@ touch $cmdfile
 chmod +x $cmdfile
 for i in $(seq ${nruns})
 do
-  echo "./unfolding_qubo_syst.py -e ${enc} -o ${obs} -l ${reg} -b ${backend} -g ${gamma} -f ${csvfile} -n ${num_reads}" >> $cmdfile
+  echo "unfolding_qubo_syst.py -e ${enc} -o ${obs} -l ${reg} -b ${backend} -g ${gamma} -f ${csvfile} -n ${num_reads}" >> $cmdfile
 done
 parallel --progress < $cmdfile
 rm -f $cmdfile
