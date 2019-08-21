@@ -35,9 +35,9 @@ labels = {
     'pdata': "True value",
     #'IB4'               : "D\'Agostini ItrBayes ($N_{itr}$=4)",
     'sim_gamma0': "QUBO (CPU, Neal, $\gamma$=0)",
-    'sim_gamma1': "QUBO (CPU, Neal, $\gamma$=1)",
+    'sim_gamma1': "QUBO (CPU, Neal, $\gamma$=1000)",
     'qpu_lonoise_reg0_gamma0': "QUBO (QPU, lower noise, $\gamma$=0)",
-    'qpu_lonoise_reg0_gamma1': "QUBO (QPU, lower noise, $\gamma$=1)",
+    'qpu_lonoise_reg0_gamma1': "QUBO (QPU, lower noise, $\gamma$=1000)",
     #'hyb_reg0'          : "QUBO (Hybrid, $\lambda$=0)",
     #'hyb_reg1'          : "QUBO (Hybrid, $\lambda$=1)",
 }

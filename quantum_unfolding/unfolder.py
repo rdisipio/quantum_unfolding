@@ -72,7 +72,7 @@ class QUBOUnfolder(object):
         self.num_reads = 5000
 
         self._encoder = BinaryEncoder()
-        self._auto_scaling = 0.5
+        self._auto_scaling = 1.00
 
         self._data = QUBOData()
 
