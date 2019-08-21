@@ -45,7 +45,7 @@ def FromFile(csv_file):
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-from input_data import *
+from quantum_unfolding.input_data import *
 
 parser = argparse.ArgumentParser("Quantum unfolding plotter")
 parser.add_argument('-o', '--observable', default='peak')
@@ -64,13 +64,13 @@ unfolded_data = {
     #'IB4' : input_data[obs]['IB4'],
     #'sim'            : FromFile(f"results.obs_{obs}.sim.reg_0.4bits.csv"),
     'qpu_lonoise_4bits_reg0':
-    FromFile(f"results.obs_{obs}.qpu_lonoise.reg_0.4bits.csv"),
+    FromFile(f"data/results.obs_{obs}.qpu_lonoise.reg_0.4bits.csv"),
     'qpu_lonoise_8bits_reg0':
-    FromFile(f"results.obs_{obs}.qpu_lonoise.reg_0.8bits.csv"),
+    FromFile(f"data/results.obs_{obs}.qpu_lonoise.reg_0.8bits.csv"),
     'qpu_hinoise_4bits_reg0':
-    FromFile(f"results.obs_{obs}.qpu_hinoise.reg_0.4bits.csv"),
+    FromFile(f"data/results.obs_{obs}.qpu_hinoise.reg_0.4bits.csv"),
     'qpu_hinoise_8bits_reg0':
-    FromFile(f"results.obs_{obs}.qpu_hinoise.reg_0.8bits.csv"),
+    FromFile(f"data/results.obs_{obs}.qpu_hinoise.reg_0.8bits.csv"),
 }
 
 colors = ['black', 'green', 'green', 'red', 'red']

@@ -57,7 +57,7 @@ def FromFile(csv_file):
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-from input_data import *
+from quantum_unfolding.input_data import *
 
 #z = np.hstack( [input_data[obs]['pdata'], sigma_syst] )
 z = input_data[obs]['truth']
@@ -70,22 +70,22 @@ unfolded_data = {
     },
     #'IB4' : input_data[obs]['IB4'],
     'sim_gamma0':
-    FromFile(f"csv/results_syst.obs_{obs}.sim.reg_0.gamma_0.4bits.csv"),
+    FromFile(f"data/results_syst.obs_{obs}.sim.reg_0.gamma_0.4bits.csv"),
     'sim_gamma1':
-    FromFile(f"csv/results_syst.obs_{obs}.sim.reg_0.gamma_1.4bits.csv"),
+    FromFile(f"data/results_syst.obs_{obs}.sim.reg_0.gamma_1.4bits.csv"),
     'qpu_lonoise_reg0_gamma0':
     FromFile(
-        f"csv/results_syst.obs_{obs}.qpu_lonoise.reg_0.gamma_0.4bits.csv"),
+        f"data/results_syst.obs_{obs}.qpu_lonoise.reg_0.gamma_0.4bits.csv"),
     'qpu_lonoise_reg0_gamma1':
     FromFile(
-        f"csv/results_syst.obs_{obs}.qpu_lonoise.reg_0.gamma_1.4bits.csv"),
+        f"data/results_syst.obs_{obs}.qpu_lonoise.reg_0.gamma_1.4bits.csv"),
 
     #'hyb_reg0'         : FromFile(f"results.obs_{obs}.hyb.reg_0.csv"),
     #'hyb_reg1'         : FromFile(f"results.obs_{obs}.hyb.reg_1.csv"),
 }
 
 Nbins = 5
-Nsyst = 2
+Nsyst = 1
 
 colors = ['black', 'red', 'gold', 'seagreen', 'blue']
 #          'gold', 'cyan', 'violet', 'navyblue']
@@ -169,13 +169,14 @@ for imethod in range(1, n_methods + 1):
                          label=labels[method])
 
 # ax_syst.get_yaxis().set_visible(False)
-ax_syst.set_xlim(-1.5, 1.5)
+ax_syst.set_xlim(-1.5, 0.0)
 ax_syst.set_ylim(-0.5, Nsyst - 0.5)
 ax_syst.xaxis.label.set_fontsize(14)
 ax_syst.set_xlabel("$\lambda$")
 ax_syst.tick_params(labelsize=14)
 ax_syst.set_yticks(np.arange(Nsyst))
-ax_syst.set_yticklabels(["norm", "shape"])
+#ax_syst.set_yticklabels(["norm", "shape"])
+ax_syst.set_yticklabels( ["syst"] )
 
 plt.show()
 fig.savefig(f"unfolded_{obs}_syst.pdf")

@@ -49,7 +49,7 @@ def FromFile(csv_file):
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-from input_data import *
+from quantum_unfolding.input_data import *
 
 parser = argparse.ArgumentParser("Quantum unfolding plotter")
 parser.add_argument('-o', '--observable', default='falling')
@@ -67,13 +67,13 @@ pdata = {
 
 unfolded_data = {
     'lower noise 4bits':
-    FromFile(f"csv/results.obs_{obs}.qpu_lonoise.reg_0.4bits.csv"),
+    FromFile(f"data/results.obs_{obs}.qpu_lonoise.reg_0.4bits.csv"),
     'lower noise 8bits':
-    FromFile(f"csv/results.obs_{obs}.qpu_lonoise.reg_0.8bits.csv"),
+    FromFile(f"data/results.obs_{obs}.qpu_lonoise.reg_0.8bits.csv"),
     'regular noise 4bits':
-    FromFile(f"csv/results.obs_{obs}.qpu_hinoise.reg_0.4bits.csv"),
+    FromFile(f"data/results.obs_{obs}.qpu_hinoise.reg_0.4bits.csv"),
     'regular noise 8bits':
-    FromFile(f"csv/results.obs_{obs}.qpu_hinoise.reg_0.8bits.csv"),
+    FromFile(f"data/results.obs_{obs}.qpu_hinoise.reg_0.8bits.csv"),
 }
 
 nreads = 20

@@ -50,7 +50,7 @@ def FromFile(csv_file):
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-from input_data import *
+from quantum_unfolding.input_data import *
 
 parser = argparse.ArgumentParser("Quantum unfolding plotter")
 parser.add_argument('-o', '--observable', default='peak')
@@ -71,21 +71,21 @@ unfolded_data = {
     'IB4':
     input_data[obs]['IB4'],
     'sim':
-    FromFile(f"csv/results.obs_{obs}.sim.reg_0.{nbits}bits.csv"),
+    FromFile(f"data/results.obs_{obs}.sim.reg_0.{nbits}bits.csv"),
     'qpu_lonoise_reg0':
-    FromFile(f"csv/results.obs_{obs}.qpu_lonoise.reg_0.{nbits}bits.csv"),
+    FromFile(f"data/results.obs_{obs}.qpu_lonoise.reg_0.{nbits}bits.csv"),
     'qpu_lonoise_reg1':
-    FromFile(f"csv/results.obs_{obs}.qpu_lonoise.reg_1.{nbits}bits.csv"),
+    FromFile(f"data/results.obs_{obs}.qpu_lonoise.reg_1.{nbits}bits.csv"),
     'qpu_hinoise_reg0':
-    FromFile(f"csv/results.obs_{obs}.qpu_hinoise.reg_0.{nbits}bits.csv"),
+    FromFile(f"data/results.obs_{obs}.qpu_hinoise.reg_0.{nbits}bits.csv"),
     'qpu_hinoise_reg1':
-    FromFile(f"csv/results.obs_{obs}.qpu_hinoise.reg_1.{nbits}bits.csv"),
+    FromFile(f"data/results.obs_{obs}.qpu_hinoise.reg_1.{nbits}bits.csv"),
     'qpu_lonoise_reg01':
-    FromFile(f"csv/results.obs_{obs}.qpu_lonoise.reg_0.1.{nbits}bits.csv"),
+    FromFile(f"data/results.obs_{obs}.qpu_lonoise.reg_0.1.{nbits}bits.csv"),
     'qpu_lonoise_reg025':
-    FromFile(f"csv/results.obs_{obs}.qpu_lonoise.reg_0.25.{nbits}bits.csv"),
+    FromFile(f"data/results.obs_{obs}.qpu_lonoise.reg_0.25.{nbits}bits.csv"),
     'qpu_lonoise_reg05':
-    FromFile(f"csv/results.obs_{obs}.qpu_lonoise.reg_0.5.{nbits}bits.csv"),
+    FromFile(f"data/results.obs_{obs}.qpu_lonoise.reg_0.5.{nbits}bits.csv"),
     #'hyb_reg0'         : FromFile(f"csv/results.obs_{obs}.hyb.reg_0.csv"),
     #'hyb_reg1'         : FromFile(f"csv/results.obs_{obs}.hyb.reg_1.csv"),
 }
