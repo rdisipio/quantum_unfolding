@@ -29,3 +29,5 @@ __all__ = ['anneal_sched_custom',
            'R0',
            'sigma_syst',
            'StatusCode']
+
+__version__ = "1.0.0"

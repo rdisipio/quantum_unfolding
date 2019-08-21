@@ -6,9 +6,16 @@ try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
+
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
+
+with open("quantum_unfolding/__init__.py") as f:
+    version = f.readlines()[-1].split()[-1].strip("\"'")
+    
 setup(
     name='quantum_unfolding',
-    version='1.0.0',
+    version=version,
     packages=['quantum_unfolding'],
     url='https://github.com/rdisipio/quantum_unfolding',
     keywords=[
@@ -25,6 +32,7 @@ setup(
         'Intended Audience :: Science/Research',
         'Programming Language :: Python'
     ],
+    install_requires=requirements,
     scripts=[   'experiments/unfold_qubo_parallel.sh',
                 'experiments/unfold_qubo_syst_parallel.sh', 
                 'experiments/unfold_qubo.sh',
