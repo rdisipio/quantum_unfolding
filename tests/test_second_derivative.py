@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-from decimal2binary import *
+import numpy as np
+from quantum_unfolding import d2b, laplacian
 
 x = [5, 8, 12, 18, 15, 9, 3]
 

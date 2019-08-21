@@ -2,7 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from decimal2binary import *
+from quantum_unfolding import binary_matmul, d2b
 
 np.set_printoptions(precision=1, linewidth=200, suppress=True)
 

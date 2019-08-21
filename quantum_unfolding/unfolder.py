@@ -1,12 +1,10 @@
 import numpy as np
 import enum
 
-# DWave stuff
 import dimod
 import dwave_networkx as dnx
 import neal
 from dwave_qbsolv import QBSolv
-
 from dwave.system import EmbeddingComposite, FixedEmbeddingComposite, TilingComposite, DWaveSampler
 from dwave_tools import get_embedding_with_short_chain, get_energy, anneal_sched_custom, merge_substates
 
@@ -332,9 +330,9 @@ class QUBOUnfolder(object):
     def get_config_file(self):
         config_file = "dwave.config"
         if self.backend in [Backends.qpu, Backends.qpu_lonoise, Backends.hyb]:
-            config_file = "dwave.conf.wittek-lownoise"
+            config_file = "dwave.conf.lownoise"
         elif self.backend in [Backends.qpu_hinoise]:
-            config_file = "dwave.conf.wittek-hinoise"
+            config_file = "dwave.conf.hinoise"
         else:
             raise Exception("ERROR: unknown QPU backend")
 
