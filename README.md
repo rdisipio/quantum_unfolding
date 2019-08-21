@@ -1,6 +1,8 @@
-# Quantum Unfolding
+# Unfolding as quantum annealing
 
-Unfolding with quantum computing
+This repository is the computational appendix of the following paper:
+
+Kyle Cormier, Riccardo Di Sipio, Peter Wittek . [Unfolding as quantum annealing](https://arxiv.org/abs/1908.XXXXX). *arXiv:1908.XXXXX*, 2019.
 
 ## Check out package
 ```
@@ -122,5 +124,3 @@ Make plots:
 ```
 DWAVE_HYBRID_LOG_LEVEL=INFO ./unfolding_qubo.py -b hyb
 ```
-
-

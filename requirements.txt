@@ -1,0 +1,9 @@
+dwave-system
+dwave-neal
+hyperopt
+matplotlib
+minorminer
+numpy
+scipy
+seaborn
+sklearn
