@@ -40,7 +40,6 @@ n = 4  # number of bits
 annealing_time = 100.  # us
 max_evals = int(args.max_evals)
 
-
 #x_b = discretize_vector(x, n)
 z_b = discretize_vector(z, n)
 d_b = discretize_vector(d, n)
@@ -54,22 +53,20 @@ h = {}
 J = {}
 
 # linear constraints
-for j in range(n*N):
+for j in range(n * N):
     h[(j)] = 0
     for i in range(N):
-        h[(j)] += (
-            R_b[i][j]*R_b[i][j] -
-            2*R_b[i][j] * d[i] +
-            lmbd*D_b[i][j]*D_b[i][j]
-        )
+        h[(j)] += (R_b[i][j] * R_b[i][j] - 2 * R_b[i][j] * d[i] +
+                   lmbd * D_b[i][j] * D_b[i][j])
     S[(j, j)] = h[(j)]
 
 # quadratic constraints
-for j in range(n*N):
-    for k in range(j+1, n*N):
+for j in range(n * N):
+    for k in range(j + 1, n * N):
         J[(j, k)] = 0
         for i in range(N):
-            J[(j, k)] += 2*(R_b[i][j]*R_b[i][k] + lmbd*D_b[i][j]*D_b[i][k])
+            J[(j, k)] += 2 * (R_b[i][j] * R_b[i][k] +
+                              lmbd * D_b[i][j] * D_b[i][k])
         S[(j, k)] = J[(j, k)]
 
 bqm = dimod.BinaryQuadraticModel(linear=h,
@@ -86,12 +83,13 @@ embedding = get_embedding_with_short_chain(S,
 
 sampler = FixedEmbeddingComposite(hardware_sampler, embedding)
 
-solver_parameters = {'num_reads': num_reads,
-                     'auto_scale': True,
-                     'annealing_time': annealing_time,  # default: 20 us
-                     #'anneal_schedule': anneal_sched_custom(id=3),
-                     #'num_spin_reversal_transforms': 2,  # default: 2
-                     }
+solver_parameters = {
+    'num_reads': num_reads,
+    'auto_scale': True,
+    'annealing_time': annealing_time,  # default: 20 us
+    #'anneal_schedule': anneal_sched_custom(id=3),
+    #'num_spin_reversal_transforms': 2,  # default: 2
+}
 
 # schedule = make_reverse_anneal_schedule(s_target=0.99,
 #                                        hold_time=1,
@@ -103,7 +101,6 @@ print("INFO: reverse annealing schedule:")
 print(schedule)
 
 neal_sampler = neal.SimulatedAnnealingSampler()
-
 
 print("INFO: solving initial state")
 best_fit = sampler.sample(bqm, **solver_parameters).aggregate().first
@@ -119,8 +116,7 @@ neal_q = np.array(list(neal_solution.sample.values()))
 neal_y = compact_vector(neal_q, n)
 neal_hamm = hamming(z_b, neal_q)
 
-print("INFO: initial solution:", q,
-      "::", y, ":: E=", energy_bestfit)
+print("INFO: initial solution:", q, "::", y, ":: E=", energy_bestfit)
 print("INFO: neal solution:", neal_q, "::", neal_y, ":: E =", neal_energy)
 print("INFO: truth value:  ", z_b, "::", z, ":: E =", energy_true_z)
 print("INFO: hamming distance:", min_hamming)
@@ -134,15 +130,15 @@ for itrial in range(max_evals):
                                  initial_state=best_fit.sample,
                                  reinitialize_state=True)
 
-    solver_parameters = {'num_reads': num_reads,
-                         'auto_scale': True,
-                         **reverse_anneal_params,
-                         }
+    solver_parameters = {
+        'num_reads': num_reads,
+        'auto_scale': True,
+        **reverse_anneal_params,
+    }
 
-    print("INFO: refine solution: attempt %i/%i" % (itrial+1, max_evals))
+    print("INFO: refine solution: attempt %i/%i" % (itrial + 1, max_evals))
     print("INFO: schedule:", schedule)
-    this_result = sampler.sample(
-        bqm, **solver_parameters).aggregate().first
+    this_result = sampler.sample(bqm, **solver_parameters).aggregate().first
     this_energy = this_result.energy
     this_q = np.array(list(this_result.sample.values()))
     this_y = compact_vector(this_q, n)
@@ -151,11 +147,10 @@ for itrial in range(max_evals):
     this_chi2, this_p = stats.chisquare(this_y, z, dof)
 
     print("INFO: this solution:", this_q, "::", this_y, ":: E =", this_energy,
-          ":: hamm =", this_hamm, "chi2/dof = %.3f" % (this_chi2/float(dof))
-          )
+          ":: hamm =", this_hamm, "chi2/dof = %.3f" % (this_chi2 / float(dof)))
     print("INFO: best solution:", q, "::", y, ":: E =", energy_bestfit,
-          ":: hamm =", min_hamming, "chi2/dof = %.3f" % (best_chi2/float(dof))
-          )
+          ":: hamm =", min_hamming,
+          "chi2/dof = %.3f" % (best_chi2 / float(dof)))
     print("INFO: truth value:  ", z_b, "::", z, ":: E =", energy_true_z)
 
     # if this_hamm < min_hamming: # makes no sense in real life where truth is unknown!

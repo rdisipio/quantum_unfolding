@@ -14,9 +14,7 @@ x = [schedule[i][0] for i in range(npoints)]
 y = [schedule[i][1] for i in range(npoints)]
 print(x)
 print(y)
-plt.scatter(x, y,
-            color='black'
-            )
+plt.scatter(x, y, color='black')
 plt.plot(x, y, label='Annealing schedule')
 
 plt.legend()

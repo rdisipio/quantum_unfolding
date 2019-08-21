@@ -38,50 +38,50 @@ from input_data import *
 
 # Signal (reference MC)
 x = input_data[obs]['truth']
-y = np.dot(R0, x) # signal @ reco-level
+y = np.dot(R0, x)  # signal @ reco-level
 
 # Pseudo-data (to be unfolded)
 #z = input_data[obs]['pdata']
-z = input_data[obs]['truth'] # closure test
-d = np.dot(R0, z) # pseduo-data @ reco-level
+z = input_data[obs]['truth']  # closure test
+d = np.dot(R0, z)  # pseduo-data @ reco-level
 
 print("INFO: pseudo-data (before systs):")
 print(d)
 
-n = int( args.encoding )
+n = int(args.encoding)
 N = x.shape[0]
 
 print("INFO: N bins:", N)
 print("INFO: n-bits encoding:", n)
 
 # Systematic uncertainties:
-dy1 = np.array( [1., 1., 1., 1., 1.] ) # overall shift
-dy2 = np.array( [1., 2., 3., 2., 1.] ) # shape change
+dy1 = np.array([1., 1., 1., 1., 1.])  # overall shift
+dy2 = np.array([1., 2., 3., 2., 1.])  # shape change
 
 # strength of systematics in pseudo-data
-sigma_syst = np.array( [1.0, -1.0] )
+sigma_syst = np.array([1.0, -1.0])
 
-d = np.add( d, sigma_syst[0]*dy1 )
-d = np.add( d, sigma_syst[1]*dy2 )
+d = np.add(d, sigma_syst[0] * dy1)
+d = np.add(d, sigma_syst[1] * dy2)
 
 print("INFO: pseudo-data (incl effect of systs):")
 print(d)
 
-unfolder.get_data().set_truth( x )
-unfolder.get_data().set_response( R0 )
-unfolder.get_data().set_data( d )
-unfolder.set_regularization( lmbd )
-unfolder.set_syst_penalty( gamma )
+unfolder.get_data().set_truth(x)
+unfolder.get_data().set_response(R0)
+unfolder.get_data().set_data(d)
+unfolder.set_regularization(lmbd)
+unfolder.set_syst_penalty(gamma)
 unfolder.set_encoding(n)
 
-unfolder.syst_range = 2. # +- 2sigma
-unfolder.add_syst_1sigma( dy1, n_bits=4 )
-unfolder.add_syst_1sigma( dy2, n_bits=4 )
+unfolder.syst_range = 2.  # +- 2sigma
+unfolder.add_syst_1sigma(dy1, n_bits=4)
+unfolder.add_syst_1sigma(dy2, n_bits=4)
 
 unfolder.backend = backend
 unfolder.solver_parameters['num_reads'] = num_reads
-unfolder.solver_parameters['annealing_time'] = 20 #us
- 
+unfolder.solver_parameters['annealing_time'] = 20  #us
+
 print("INFO: Pseudo-data truth-level x:")
 print(z)
 
@@ -97,8 +97,8 @@ if dry_run:
 
 y = unfolder.get_unfolded()
 
-z_b = unfolder._encoder.encode( z )
-x_b = unfolder._encoder.encode( x )
+z_b = unfolder._encoder.encode(z)
+x_b = unfolder._encoder.encode(x)
 bqm = unfolder._bqm
 best_fit = unfolder.best_fit
 energy_bestfit = best_fit.energy
@@ -107,7 +107,7 @@ y = unfolder._encoder.decode(q)
 energy_true_x = get_energy(bqm, x_b)
 energy_true_z = get_energy(bqm, z_b)
 
-z = np.append( z, sigma_syst )
+z = np.append(z, sigma_syst)
 
 from scipy import stats
 dof = N - 1
@@ -116,8 +116,8 @@ print("z =", z)
 chi2, p = stats.chisquare(y, z, dof)
 chi2dof = chi2 / float(dof)
 
-print("INFO: best-fit:   ", q, "::", y, ":: E =",
-      energy_bestfit, ":: chi2/dof = %.2f" % chi2dof)
+print("INFO: best-fit:   ", q, "::", y, ":: E =", energy_bestfit,
+      ":: chi2/dof = %.2f" % chi2dof)
 print("INFO: truth value:", z_b, "::", z, ":: E =", energy_true_z)
 
 from sklearn.metrics import accuracy_score
@@ -133,5 +133,5 @@ print(list(y), end='')
 print(', # E =', energy_bestfit, "chi2/dof = %.2f" % chi2dof)
 
 if not args.file == None:
-     f = open( args.file, 'a')
-     np.savetxt( f, y.reshape(1, y.shape[0]), fmt="%f", delimiter="," )
+    f = open(args.file, 'a')
+    np.savetxt(f, y.reshape(1, y.shape[0]), fmt="%f", delimiter=",")

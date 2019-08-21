@@ -1,6 +1,7 @@
 import numpy as np
 import random as rnd
 
+
 def laplacian(n):
 
     lap = np.diag(2*np.ones(n)) + \
@@ -11,57 +12,58 @@ def laplacian(n):
 
 
 def laplacian_nbits(N, n=8):
-    A = np.zeros([N, N*n])
+    A = np.zeros([N, N * n])
     bitvals = [np.power(2., -i) for i in range(n)]
     for i in range(n):
         A[0, i] = -2 * bitvals[i]
         A[0, n + i] = 1 * bitvals[i]
-        A[-1, - 2 * n + i] = 1 * bitvals[i]
-        A[-1, - n + i] = -2 * bitvals[i]
-    for i in range(1, N-1):
+        A[-1, -2 * n + i] = 1 * bitvals[i]
+        A[-1, -n + i] = -2 * bitvals[i]
+    for i in range(1, N - 1):
         for j in range(n):
             A[i, n * i - 2 * n + j] = 1 * bitvals[j]
             A[i, n * i - n + j] = -2 * bitvals[j]
             A[i, n * i + j] = 1 * bitvals[j]
     return A
 
-def discretize_vector(x, encoding = [] ):
+
+def discretize_vector(x, encoding=[]):
     N = len(x)
     n = 0
 
     if len(encoding) == 0:
         n = 4
-        encoding = np.array( [n]*N )
+        encoding = np.array([n] * N)
 
-    q = np.zeros(N*n)
-    for i in range(N-1, -1, -1):
+    q = np.zeros(N * n)
+    for i in range(N - 1, -1, -1):
         x_d = int(x[i])
-        j = n-1
+        j = n - 1
         while x_d > 0:
-            k = i*n + j
+            k = i * n + j
             q[k] = x_d % 2
             x_d = x_d // 2
             j -= 1
     return np.uint8(q)
 
 
-def compact_vector(q, encoding = []):
+def compact_vector(q, encoding=[]):
     n = 0
     N = 0
     if len(encoding) == 0:
         n = 4
         N = q.shape[0] // n
-        encoding = np.array( [n]*N )
+        encoding = np.array([n] * N)
 
     x = np.zeros(N, dtype='uint8')
     for i in range(N):
         for j in range(n):
-            p = np.power(2, n-j-1)
-            x[i] += p*q[(n*i+j)]
+            p = np.power(2, n - j - 1)
+            x[i] += p * q[(n * i + j)]
     return x
 
 
-def discretize_matrix(A, encoding = [] ):
+def discretize_matrix(A, encoding=[]):
     # x has N elements (decimal)
     # q has Nx elements (binary)
     # A has N columns
@@ -75,12 +77,12 @@ def discretize_matrix(A, encoding = [] ):
     if len(encoding) == 0:
         n = 4
 
-    D = np.zeros([N, M*n])
+    D = np.zeros([N, M * n])
 
     for i in range(M):
-        for j in range(n): #-->bits
-            k = (i)*n+j
-            D[:, k] = np.power(2, n-j-1) * A[:, i]
+        for j in range(n):  #-->bits
+            k = (i) * n + j
+            D[:, k] = np.power(2, n - j - 1) * A[:, i]
     return D
 
 
@@ -88,34 +90,33 @@ def discretize_matrix(A, encoding = [] ):
 
 
 class BinaryEncoder(object):
-
     def __init__(self):
         self.alpha = None
-        self.beta  = None
-        self.rho   = None
-    
+        self.beta = None
+        self.rho = None
+
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def set_alpha( self, alpha : np.array ):
-        self.alpha = np.copy( alpha )
-    
-    def set_beta( self, beta : list ):
-        self.beta  = []
+    def set_alpha(self, alpha: np.array):
+        self.alpha = np.copy(alpha)
+
+    def set_beta(self, beta: list):
+        self.beta = []
         N = len(beta)
         for i in range(N):
-            self.beta += [ np.copy( beta[i]) ]
-    
-    def set_rho( self, rho : np.array ):
-        self.rho = np.copy( rho )
-    
-    def set_params(self, alpha : np.array, beta : list, rho : np.array ):
-        self.set_alpha( alpha )
-        self.set_beta( beta )
-        self.set_rho( rho )
+            self.beta += [np.copy(beta[i])]
+
+    def set_rho(self, rho: np.array):
+        self.rho = np.copy(rho)
+
+    def set_params(self, alpha: np.array, beta: list, rho: np.array):
+        self.set_alpha(alpha)
+        self.set_beta(beta)
+        self.set_rho(rho)
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def encode( self, x ):
+    def encode(self, x):
         '''
         :param alpha: offeset
         :param beta: scaling
@@ -126,59 +127,59 @@ class BinaryEncoder(object):
         from decimal import Decimal
 
         N = len(x)
-        
-        n_bits_total = int( sum( self.rho ) )
-        x_b = np.zeros( n_bits_total, dtype='uint' )
 
-        for i in range(N-1, -1, -1):
-            n = int( self.rho[i] )
+        n_bits_total = int(sum(self.rho))
+        x_b = np.zeros(n_bits_total, dtype='uint')
+
+        for i in range(N - 1, -1, -1):
+            n = int(self.rho[i])
             x_d = x[i] - self.alpha[i]
 
-            for j in range(0,n,1):
-                a = int( np.sum(self.rho[:i]) + j )
+            for j in range(0, n, 1):
+                a = int(np.sum(self.rho[:i]) + j)
 
-                more_than = Decimal(x_d) // Decimal(self.beta[i][a] )
-                equal_to = np.isclose(x_d, self.beta[i][a] )
+                more_than = Decimal(x_d) // Decimal(self.beta[i][a])
+                equal_to = np.isclose(x_d, self.beta[i][a])
 
-                x_b[a] = min([1, more_than or equal_to ])
-                
-                x_d = x_d - x_b[a]*self.beta[i][a]
+                x_b[a] = min([1, more_than or equal_to])
+
+                x_d = x_d - x_b[a] * self.beta[i][a]
 
         return x_b
-        
-    
+
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def random_encode(self, x, floats=False ):
+    def random_encode(self, x, floats=False):
         '''
         encode x chosing alpha and beta parameters at random from
         suitable set
         '''
-        N=len(self.rho)
-        self.alpha=np.zeros(N)
-        self.beta = [ None ] * N
+        N = len(self.rho)
+        self.alpha = np.zeros(N)
+        self.beta = [None] * N
 
         for i in range(0, N, 1):
             n = self.rho[i]
             self.beta[i] = np.zeros(n)
             if floats:
-                self.alpha[i] = rnd.uniform(0,x[i])
+                self.alpha[i] = rnd.uniform(0, x[i])
             else:
                 self.alpha[i] = rnd.randrange(x[i])
             if x[i] == 0:
                 self.alpha[i] = -1
-            scale_factor = (x[i] - self.alpha[i])/rnd.randrange(1,np.power(2,n)) 
+            scale_factor = (x[i] - self.alpha[i]) / rnd.randrange(
+                1, np.power(2, n))
 
             for j in range(n):
-                self.beta[i][j] = scale_factor * np.power(2,n-j-1) 
-        
+                self.beta[i][j] = scale_factor * np.power(2, n - j - 1)
+
         x_b = self.encode(x)
-    
+
         return x_b
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    def auto_encode( self, x, auto_range = 0.5 ):
+
+    def auto_encode(self, x, auto_range=0.5):
         ''' 
         if range is [ x*(1-h), x*(1+h)], e.g. x +- 50%
         alpha = x*(1-h) = lowest possible value
@@ -189,17 +190,17 @@ class BinaryEncoder(object):
         N = len(self.rho)
         n_bits_total = sum(self.rho)
         self.alpha = np.zeros(N)
-        self.beta  = np.zeros([N,n_bits_total])
+        self.beta = np.zeros([N, n_bits_total])
 
-        for i in range(N-1, -1, -1):
+        for i in range(N - 1, -1, -1):
             n = self.rho[i]
-            self.alpha[i] = ( 1. - auto_range ) * x[i]
+            self.alpha[i] = (1. - auto_range) * x[i]
             #w = 2 * auto_range*x[i] / float(n)
-            w = 2 * auto_range*x[i] / np.power(2,n)
+            w = 2 * auto_range * x[i] / np.power(2, n)
 
             for j in range(n):
-                a = np.sum(self.rho[:i])+j
-                self.beta[i][a] = w * np.power(2, n-j-1)
+                a = np.sum(self.rho[:i]) + j
+                self.beta[i][a] = w * np.power(2, n - j - 1)
 
         x_b = self.encode(x)
 
@@ -207,7 +208,7 @@ class BinaryEncoder(object):
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def decode( self, x_b ):
+    def decode(self, x_b):
         '''
         :param alpha: offeset (vector)
         :param beta: scaling (array)
@@ -217,14 +218,15 @@ class BinaryEncoder(object):
         '''
 
         N = len(self.alpha)
-        x = np.zeros( N )
-        for i in range(N-1, -1, -1):
+        x = np.zeros(N)
+        for i in range(N - 1, -1, -1):
             x[i] = self.alpha[i]
-            n = int( self.rho[i] )
+            n = int(self.rho[i])
             for j in range(0, n, 1):
-                a = int( np.sum(self.rho[:i])+j )
+                a = int(np.sum(self.rho[:i]) + j)
                 x[i] += self.beta[i][a] * x_b[a]
 
         return x
-        
+
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~

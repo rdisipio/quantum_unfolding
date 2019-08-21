@@ -67,19 +67,18 @@ for j in range(N):
     idx = (j)
     h[idx] = 0
     for i in range(N):
-        h[idx] += (R[i][j]*R[i][j] -
-                   2*R[i][j] * b[i] +
-                   lmbd*D[i][j]*D[i][j])
+        h[idx] += (R[i][j] * R[i][j] - 2 * R[i][j] * b[i] +
+                   lmbd * D[i][j] * D[i][j])
     #print("h", idx, ":", h[idx])
 
 # quadratic constraints
 J = np.zeros([N, N])
 for j in range(N):
-    for k in range(j+1, N):
+    for k in range(j + 1, N):
         idx = (j, k)
         J[idx] = 0
         for i in range(N):
-            J[idx] += 2*(R[i][j]*R[i][k] + lmbd*D[i][j]*D[i][k])
+            J[idx] += 2 * (R[i][j] * R[i][k] + lmbd * D[i][j] * D[i][k])
         #print("J", idx, ":", J[idx])
 
 print("h:")

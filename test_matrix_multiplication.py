@@ -11,7 +11,7 @@ np.set_printoptions(precision=1, linewidth=200, suppress=True)
 xmin = 0
 xmax = 6
 Nbins = 2
-xedges = np.linspace(xmin, xmax, Nbins+1)
+xedges = np.linspace(xmin, xmax, Nbins + 1)
 
 print("INFO: bin edges (%i):" % Nbins)
 print(xedges)
@@ -29,8 +29,7 @@ print("INFO: x binary representation:", x_b.shape)
 print(x_b)
 
 # Response matrix
-R = [[3, 1],
-     [1, 2]]
+R = [[3, 1], [1, 2]]
 R = np.array(R, dtype='uint8')  # (3,3)
 print("INFO: Response matrix:", R.shape)
 print(R)

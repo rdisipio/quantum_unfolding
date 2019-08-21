@@ -3,10 +3,8 @@
 from decimal2binary import *
 np.set_printoptions(precision=1, linewidth=200, suppress=True)
 
-A = [[2, 1, 0],
-     [1, 2, 1],
-     [0, 1, 3]]
-A = 2*np.eye(3)
+A = [[2, 1, 0], [1, 2, 1], [0, 1, 3]]
+A = 2 * np.eye(3)
 
 x = [12, 5, 9]
 
@@ -24,7 +22,6 @@ print("q:", q)
 
 print("b:", b)
 print("b:", np.unpackbits(np.uint8(b)))
-
 
 A2 = discretize_matrix(A, n)
 

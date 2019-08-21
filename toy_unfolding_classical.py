@@ -57,10 +57,7 @@ print(R_b)
 params = [d_b, R_b]
 # initial guess
 x_0 = np.random.randint(0, int_max, size=(n_bins), dtype='uint8')
-res = optimize.minimize(lh.log_gauss,
-                        x_0,
-                        args=params,
-                        method='Powell')
+res = optimize.minimize(lh.log_gauss, x_0, args=params, method='Powell')
 
 print(res)
 
@@ -72,4 +69,3 @@ print(x_star_b)
 print("INFO: truth level:")
 print(x_b)
 print(x)
-

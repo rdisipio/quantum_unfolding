@@ -16,7 +16,8 @@ parser = argparse.ArgumentParser("Quantum unfolding")
 parser.add_argument('-o', '--observable', default='peak')
 parser.add_argument('-l', '--lmbd', default=0)
 parser.add_argument('-n', '--nreads', default=5000)
-parser.add_argument('-b', '--backend', default='sim')  # [cpu, sim, qpu, hyb, qbs]
+parser.add_argument('-b', '--backend',
+                    default='sim')  # [cpu, sim, qpu, hyb, qbs]
 parser.add_argument('-e', '--encoding', default=4)
 parser.add_argument('-f', '--file', default=None)
 parser.add_argument('-d', '--dry-run', action='store_true', default=False)
@@ -35,14 +36,14 @@ from input_data import *
 
 # Signal (reference MC)
 x = input_data[obs]['truth']
-y = np.dot(R0, x) # signal @ reco-level
+y = np.dot(R0, x)  # signal @ reco-level
 
 # Pseudo-data (to be unfolded)
 #z = input_data[obs]['pdata']
-z = input_data[obs]['truth'] # closure test
-d = np.dot(R0, z) # pseduo-data @ reco-level
+z = input_data[obs]['truth']  # closure test
+d = np.dot(R0, z)  # pseduo-data @ reco-level
 
-n = int( args.encoding )
+n = int(args.encoding)
 N = x.shape[0]
 
 print("INFO: N bins:", N)
@@ -50,16 +51,16 @@ print("INFO: n-bits encoding:", n)
 
 lmbd = float(args.lmbd)  # regularization strength
 
-unfolder.get_data().set_truth( x )
-unfolder.get_data().set_response( R0 )
-unfolder.get_data().set_data( d )
-unfolder.set_regularization( lmbd )
+unfolder.get_data().set_truth(x)
+unfolder.get_data().set_response(R0)
+unfolder.get_data().set_data(d)
+unfolder.set_regularization(lmbd)
 unfolder.set_encoding(n)
 
 unfolder.backend = backend
 unfolder.solver_parameters['num_reads'] = num_reads
-unfolder.solver_parameters['annealing_time'] = 20 #us
- 
+unfolder.solver_parameters['annealing_time'] = 20  #us
+
 print("INFO: Pseudo-data truth-level x:")
 print(z)
 
@@ -77,8 +78,8 @@ if dry_run:
 y = unfolder.get_unfolded()
 print(y)
 
-z_b = unfolder._encoder.encode( z )
-x_b = unfolder._encoder.encode( x )
+z_b = unfolder._encoder.encode(z)
+x_b = unfolder._encoder.encode(x)
 bqm = unfolder._bqm
 best_fit = unfolder.best_fit
 energy_bestfit = best_fit.energy
@@ -92,8 +93,8 @@ dof = N - 1
 chi2, p = stats.chisquare(y, z, dof)
 chi2dof = chi2 / float(dof)
 
-print("INFO: best-fit:   ", q, "::", y, ":: E =",
-      energy_bestfit, ":: chi2/dof = %.2f" % chi2dof)
+print("INFO: best-fit:   ", q, "::", y, ":: E =", energy_bestfit,
+      ":: chi2/dof = %.2f" % chi2dof)
 print("INFO: truth value:", z_b, "::", z, ":: E =", energy_true_z)
 
 from sklearn.metrics import accuracy_score
@@ -109,5 +110,5 @@ print(list(y), end='')
 print(', # E =', energy_bestfit, "chi2/dof = %.2f" % chi2dof)
 
 if not args.file == None:
-     f = open( args.file, 'a')
-     np.savetxt( f, y.reshape(1, y.shape[0]), fmt="%f", delimiter="," )
+    f = open(args.file, 'a')
+    np.savetxt(f, y.reshape(1, y.shape[0]), fmt="%f", delimiter=",")

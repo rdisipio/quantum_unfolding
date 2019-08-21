@@ -18,24 +18,26 @@ np.set_printoptions(precision=2, linewidth=500, suppress=True)
 def array_to_th1(a, hname="h", htitle=";X;Entries"):
     n_bins = a.shape[0]
 
-    h = TH1F(hname, htitle, n_bins, 0.5, n_bins+0.5)
+    h = TH1F(hname, htitle, n_bins, 0.5, n_bins + 0.5)
 
     for i in range(n_bins):
-        h.SetBinContent(i+1, a[i])
+        h.SetBinContent(i + 1, a[i])
 
     return h
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 def th1_to_array(h):
     n = h.GetNbinsX()
-    a = [h.GetBinContent(i+1) for i in range(n)]
-    u = [h.GetBinError(i+1) for i in range(n)]
-#    a = np.array(a, dtype='uint8')
+    a = [h.GetBinContent(i + 1) for i in range(n)]
+    u = [h.GetBinError(i + 1) for i in range(n)]
+    #    a = np.array(a, dtype='uint8')
     a = np.array(a)
     u = np.array(u)
     return a, u
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -44,18 +46,18 @@ def array_to_th2(a, hname="res", htitle=";reco;truth", u=0.10):
     n_bins_x = a.shape[0]
     n_bins_y = a.shape[1]
 
-    h = TH2F(hname, htitle, n_bins_x,
-             0.5, n_bins_x+0.5, n_bins_y, 0.5, n_bins_y+0.5)
+    h = TH2F(hname, htitle, n_bins_x, 0.5, n_bins_x + 0.5, n_bins_y, 0.5,
+             n_bins_y + 0.5)
 
     for i in range(n_bins_x):
         for j in range(n_bins_y):
-            h.SetBinContent(i+1, j+1, a[i][j])
-            h.SetBinError(i+1, j+1, u*a[i][j])
+            h.SetBinContent(i + 1, j + 1, a[i][j])
+            h.SetBinError(i + 1, j + 1, u * a[i][j])
 
     return h
 
-###########################
 
+###########################
 
 parser = argparse.ArgumentParser("Quantum unfolding")
 parser.add_argument('-o', '--observable', default='peak')
@@ -69,8 +71,8 @@ obs = args.observable
 #d = np.array(d, dtype='uint8')
 x = input_data[obs]['truth']
 z = input_data[obs]['pdata']
-y = np.dot(R0, x) # signal @ reco-level
-d = np.dot(R0, z) # pseduo-data @ reco-level
+y = np.dot(R0, x)  # signal @ reco-level
+d = np.dot(R0, z)  # pseduo-data @ reco-level
 
 print("INFO: Signal truth-level x:")
 print(x)
@@ -101,7 +103,7 @@ m_response = RooUnfoldResponse(h_y, h_x, h_R)
 m_response.UseOverflow(False)
 
 N = h_x.GetNbinsX()
-dof = N-1
+dof = N - 1
 
 unfolder_mi = RooUnfoldInvert("MI", "Matrix Inversion")
 unfolder_mi.SetVerbose(0)
@@ -114,7 +116,7 @@ print("INFO: unfolded (MI):")
 print(u_mi)
 print(e_mi)
 chi2_mi, p_mi = scipy.stats.chisquare(u_mi, z)
-print("chi2 / dof = %f / %i = %.2f" % (chi2_mi, dof, chi2_mi/float(dof)))
+print("chi2 / dof = %f / %i = %.2f" % (chi2_mi, dof, chi2_mi / float(dof)))
 
 Rinv = np.linalg.pinv(R0)
 print("INFO: R^-1:")
@@ -124,7 +126,7 @@ print("INFO: R^-1 d:")
 print("u:", u_mi)
 print("z:", z)
 chi2_mi, p_mi = scipy.stats.chisquare(u_mi, z)
-print("chi2 / dof = %f / %i = %.2f" % (chi2_mi, dof, chi2_mi/float(dof)))
+print("chi2 / dof = %f / %i = %.2f" % (chi2_mi, dof, chi2_mi / float(dof)))
 
 unfolder_ib = RooUnfoldBayes("IB", "Iterative Baysian")
 unfolder_ib.SetIterations(4)
@@ -140,7 +142,7 @@ print("INFO: unfolded (IB):")
 print(u_ib)
 print(e_ib)
 chi2_ib, p_ib = scipy.stats.chisquare(u_ib, z)
-print("chi2 / dof = %f / %i = %.2f" % (chi2_ib, dof, chi2_ib/float(dof)))
+print("chi2 / dof = %f / %i = %.2f" % (chi2_ib, dof, chi2_ib / float(dof)))
 
 unfolder_svd = RooUnfoldSvd("SVD", "SVD Tikhonov")
 unfolder_svd.SetKterm(3)  # usually nbins//2
@@ -155,7 +157,7 @@ print("INFO: unfolded (SVD):")
 print(u_svd)
 print(e_svd)
 chi2_svd, p_svd = scipy.stats.chisquare(u_svd, z)
-print("chi2 / dof = %f / %i = %.2f" % (chi2_svd, dof, chi2_svd/float(dof)))
+print("chi2 / dof = %f / %i = %.2f" % (chi2_svd, dof, chi2_svd / float(dof)))
 
 print("INFO: Truth-level z:")
 print(z)

@@ -5,36 +5,32 @@ import sys
 from dwave.system.composites import FixedEmbeddingComposite
 from dwave.system.samplers import DWaveSampler
 
-
 #########################################
+
 
 def anneal_sched_custom(id=0):
     if id == 0:
         return (
-            (0.0, 0.0),   # Start everything at 0
+            (0.0, 0.0),  # Start everything at 0
             (10.0, 0.50),
             (110, 0.50),
-            (120.0, 1.0)
-        )
+            (120.0, 1.0))
     elif id == 1:
         return (
-            (0.0, 0.0),   # Start everything at 0
+            (0.0, 0.0),  # Start everything at 0
             (1.0, 0.25),  # Quickly ramp up to 0.25 anneal at 1us
-            (19.0, 0.75),  # Hold the anneal at 0.25 until 19us, then go up to 0.75
-            (20.0, 1.0)   # End the full anneal at 20us
+            (19.0,
+             0.75),  # Hold the anneal at 0.25 until 19us, then go up to 0.75
+            (20.0, 1.0)  # End the full anneal at 20us
         )
     elif id == 2:
-        return ((0.0, 0.0),   # Start everything at 0
-                (20.0, 0.50),
-                (280, 0.50),
-                (300.0, 1.0)
-                )
-    elif id == 3:
         return (
-               (0.0,0.0),
-               (10.0,0.5),
-               (12.0,1.0)
-               ) # with quench
+            (0.0, 0.0),  # Start everything at 0
+            (20.0, 0.50),
+            (280, 0.50),
+            (300.0, 1.0))
+    elif id == 3:
+        return ((0.0, 0.0), (10.0, 0.5), (12.0, 1.0))  # with quench
     else:
         return None
 
@@ -50,8 +46,10 @@ def max_chain_length(embedding: dict) -> int:
 #########################################
 
 
-def get_embedding_with_short_chain(S: dict, tries: int = 5,
-                                   processor: list = None, verbose=True) -> dict:
+def get_embedding_with_short_chain(S: dict,
+                                   tries: int = 5,
+                                   processor: list = None,
+                                   verbose=True) -> dict:
     '''Try a few probabilistic embeddings and return the one with the shortest
     chain length
     :param S: Source couplings
@@ -67,7 +65,7 @@ def get_embedding_with_short_chain(S: dict, tries: int = 5,
     best_chain_length = sys.maxsize
     source = list(S.keys())
     for itry in range(tries):
-#        print(".",  end=' ')
+        #        print(".",  end=' ')
         try:
             emb = minorminer.find_embedding(source, processor, verbose=0)
             chain_length = max_chain_length(emb)
@@ -75,8 +73,8 @@ def get_embedding_with_short_chain(S: dict, tries: int = 5,
                 embedding = emb
                 best_chain_length = chain_length
                 if verbose:
-                    print("DEBUG: found embedding at attempt",
-                          itry, "max length:", chain_length)
+                    print("DEBUG: found embedding at attempt", itry,
+                          "max length:", chain_length)
         except:
             pass
     if embedding == None:
@@ -96,6 +94,7 @@ def get_embedding_with_short_chain(S: dict, tries: int = 5,
 
 #########################################
 
+
 def get_energy(bqm, sample):
     # see https://docs.ocean.dwavesys.com/projects/dimod/en/latest/_modules/dimod/reference/samplers/exact_solver.html
     M = bqm.binary.to_numpy_matrix()
@@ -107,16 +106,21 @@ def get_energy(bqm, sample):
 
 #########################################
 
+
 # define a qbsolv-like workflow
 def merge_substates(_, substates):
     a, b = substates
-    return a.updated(subsamples=hybrid.hstack_samplesets(a.subsamples, b.subsamples))
+    return a.updated(
+        subsamples=hybrid.hstack_samplesets(a.subsamples, b.subsamples))
 
 
 #########################################
 
 
-def make_reverse_anneal_schedule(s_target=0.0, hold_time=10.0, ramp_back_slope=0.2, ramp_up_time=0.0201,
+def make_reverse_anneal_schedule(s_target=0.0,
+                                 hold_time=10.0,
+                                 ramp_back_slope=0.2,
+                                 ramp_up_time=0.0201,
                                  ramp_up_slope=None):
     """Build annealing waveform pattern for reverse anneal feature.
     Waveform starts and ends at s=1.0, descending to a constant value
@@ -142,26 +146,33 @@ def make_reverse_anneal_schedule(s_target=0.0, hold_time=10.0, ramp_back_slope=0
     if s_target < 1.0:
         pattern.append([round(ramp_time, 4), round(s_target, 4)])
         if hold_time != 0:
-            pattern.append([round(ramp_time+hold_time, 4), round(s_target, 4)])
+            pattern.append(
+                [round(ramp_time + hold_time, 4),
+                 round(s_target, 4)])
 
     # add last point
     if ramp_up_slope is not None:
-        ramp_up_time = (1.0-s_target)/ramp_up_slope
-        pattern.append([round(ramp_time + hold_time + ramp_up_time, 4), round(1.0, 4)])
+        ramp_up_time = (1.0 - s_target) / ramp_up_slope
+        pattern.append(
+            [round(ramp_time + hold_time + ramp_up_time, 4),
+             round(1.0, 4)])
     else:
-        pattern.append([round(ramp_time + hold_time + ramp_up_time, 4), round(1.0, 4)])
+        pattern.append(
+            [round(ramp_time + hold_time + ramp_up_time, 4),
+             round(1.0, 4)])
 
     return pattern
 
 
 #########################################
 
+
 def qubo_quadratic_terms_from_np_array(Q):
     J = {}
     nx = Q.shape[0]
     ny = Q.shape[1]
     for a in range(nx):
-        for b in range(a+1, ny):
-            idx = (a,b)
+        for b in range(a + 1, ny):
+            idx = (a, b)
             J[idx] = Q[a][b]
     return J

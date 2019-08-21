@@ -20,21 +20,20 @@ print("c:", c, c_b)
 
 n = a.shape[0]
 s = np.zeros(n, dtype='uint8')
-s_b = np.zeros(8*n, dtype='uint8')
+s_b = np.zeros(8 * n, dtype='uint8')
 
-
-for i in np.arange(n-1, -1, -1):
+for i in np.arange(n - 1, -1, -1):
     borr = 0
     # each number is represented by 8 bits (1byte)
     for k in np.arange(7, -1, -1):
-        j = n_bits*i + k
-        h = np.power(2, 8-k-1)
+        j = n_bits * i + k
+        h = np.power(2, 8 - k - 1)
 
         diff = a_b[j] ^ b_b[j]
         borr = (~a_b[j]) & b_b[j]
 
         s_b[j] ^= diff
-        s_b[j-1] ^= borr
+        s_b[j - 1] ^= borr
         #print(i, k, a_b[j], b_b[j], diff, borr)
 
         s[i] += h * s_b[j]
