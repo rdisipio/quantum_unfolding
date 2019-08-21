@@ -75,8 +75,8 @@ unfolder.set_syst_penalty( gamma )
 unfolder.set_encoding(n)
 
 unfolder.syst_range = 2. # +- 2sigma
-unfolder.add_syst_1sigma( dy1, 8 )
-unfolder.add_syst_1sigma( dy2, 8 )
+unfolder.add_syst_1sigma( dy1, n_bits=4 )
+unfolder.add_syst_1sigma( dy2, n_bits=4 )
 
 unfolder.backend = backend
 unfolder.solver_parameters['num_reads'] = num_reads

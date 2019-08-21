@@ -6,6 +6,7 @@ reg=0
 gamma=1
 backend=qpu
 enc=4 #nbits
+num_reads=1000
 
 while [ $# -gt 1 ] ; do
 case $1 in
@@ -28,8 +29,8 @@ touch $cmdfile
 chmod +x $cmdfile
 for i in $(seq ${nruns})
 do
-  echo "./unfolding_qubo_syst.py -e ${enc} -o ${obs} -l ${reg} -b ${backend} -g ${gamma} -f ${csvfile}" >> $cmdfile
+  echo "./unfolding_qubo_syst.py -e ${enc} -o ${obs} -l ${reg} -b ${backend} -g ${gamma} -f ${csvfile} -n ${num_reads}" >> $cmdfile
 done
-parallel < $cmdfile
+parallel --progress < $cmdfile
 rm -f $cmdfile
 echo "INFO: finished."
