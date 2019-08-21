@@ -6,7 +6,7 @@ import dwave_networkx as dnx
 import neal
 from dwave_qbsolv import QBSolv
 from dwave.system import EmbeddingComposite, FixedEmbeddingComposite, TilingComposite, DWaveSampler
-from .dwave_tools import get_embedding_with_short_chain, get_energy, anneal_sched_custom, merge_substates
+from .dwave_tools import get_embedding_with_short_chain, get_energy, anneal_sched_custom, qubo_quadratic_terms_from_np_array
 from .decimal2binary import BinaryEncoder, laplacian
 
 #########################################
@@ -192,26 +192,32 @@ class QUBOUnfolder(object):
 
         n_bits_syst = np.sum(self.rho_systs)
         beta_syst = np.zeros([self.n_syst, n_bits_syst])
+        alpha_syst = np.zeros(self.n_syst)
 
         if self.n_syst > 0:
             print("DEBUG: systematics encodings:")
             print(self.rho_systs)
 
         for isyst in range(self.n_syst):
+            alpha_syst[isyst] = -self.syst_range
+        self._encoder.alpha = np.append(self._encoder.alpha, alpha_syst)
+
+        for isyst in range(self.n_syst):
             n_bits = self.rho_systs[isyst]
 
-            alpha = -self.syst_range
-            self._encoder.alpha = np.append(self._encoder.alpha, [alpha])
-
+            w = 2.*abs(self.syst_range) / np.power(2, n_bits)
+            #w = abs(self.syst_range) / float(n_bits)
             for j in range(n_bits):
                 a = int(np.sum(self.rho_systs[:isyst]) + j)
-                w = 2 * self.syst_range / np.power(2, n_bits)
                 beta_syst[isyst][a] = w * np.power(2, n_bits - j - 1)
 
             self._encoder.rho = np.append(self._encoder.rho, [n_bits])
 
         if self.n_syst > 0:
-            print("beta_syst")
+            print("alpha (syst only):")
+            print(alpha_syst)
+
+            print("beta (syst only):")
             print(beta_syst)
 
             n_bins = self._encoder.beta.shape[0]

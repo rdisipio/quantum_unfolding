@@ -56,14 +56,16 @@ print("INFO: N bins:", N)
 print("INFO: n-bits encoding:", n)
 
 # Systematic uncertainties:
-dy1 = np.array([1., 1., 1., 1., 1.])  # overall shift
-dy2 = np.array([3., 2., 1., 2., 3.])  # shape change
+#dy1 = np.array([3., 3., 3., 3., 3.])  # overall shift
+#dy2 = np.array([1., 2., 3., 2., 1.])  # shape change
+dy1 = np.array([5., 4., 3., 2., 1.])  # shape change
 
 # strength of systematics in pseudo-data
-sigma_syst = np.array([1.0, -1.0])
+#sigma_syst = np.array([1.0, -1.0])
+sigma_syst = np.array( [-0.75] )
 
 d = np.add(d, sigma_syst[0] * dy1)
-d = np.add(d, sigma_syst[1] * dy2)
+#d = np.add(d, sigma_syst[1] * dy2)
 
 print("INFO: pseudo-data (incl effect of systs):")
 print(d)
@@ -77,7 +79,7 @@ unfolder.set_encoding(n)
 
 unfolder.syst_range = 2.  # +- 2sigma
 unfolder.add_syst_1sigma(dy1, n_bits=4)
-unfolder.add_syst_1sigma(dy2, n_bits=4)
+#unfolder.add_syst_1sigma(dy2, n_bits=4)
 
 unfolder.backend = backend
 unfolder.solver_parameters['num_reads'] = num_reads
@@ -97,6 +99,7 @@ if dry_run:
     exit(0)
 
 y = unfolder.get_unfolded()
+z = np.append(z, sigma_syst)
 
 z_b = unfolder._encoder.encode(z)
 x_b = unfolder._encoder.encode(x)
@@ -107,8 +110,6 @@ q = np.array(list(best_fit.sample.values()))
 y = unfolder._encoder.decode(q)
 energy_true_x = get_energy(bqm, x_b)
 energy_true_z = get_energy(bqm, z_b)
-
-z = np.append(z, sigma_syst)
 
 from scipy import stats
 dof = N - 1
