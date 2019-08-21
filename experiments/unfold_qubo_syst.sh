@@ -20,7 +20,7 @@ esac
 done
 
 [ ! -d csv ] && mkdir -p csv
-csvfile="csv/results_syst.obs_${obs}.${backend}.reg_${reg}.gamma_${gamma}.${enc}bits.csv" 
+csvfile="data/results_syst.obs_${obs}.${backend}.reg_${reg}.gamma_${gamma}.${enc}bits.csv" 
 rm -f ${csvfile}
 
 for i in $(seq ${nruns})

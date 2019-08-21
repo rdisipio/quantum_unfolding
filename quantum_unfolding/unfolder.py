@@ -6,10 +6,8 @@ import dwave_networkx as dnx
 import neal
 from dwave_qbsolv import QBSolv
 from dwave.system import EmbeddingComposite, FixedEmbeddingComposite, TilingComposite, DWaveSampler
-from dwave_tools import get_embedding_with_short_chain, get_energy, anneal_sched_custom, merge_substates
-
-from dwave_tools import *
-import decimal2binary as d2b
+from .dwave_tools import get_embedding_with_short_chain, get_energy, anneal_sched_custom, merge_substates
+from .decimal2binary import BinaryEncoder, laplacian
 
 #########################################
 
@@ -73,7 +71,7 @@ class QUBOUnfolder(object):
         self.backend = Backends.qpu_lonoise
         self.num_reads = 5000
 
-        self._encoder = d2b.BinaryEncoder()
+        self._encoder = BinaryEncoder()
         self._auto_scaling = 0.5
 
         self._data = QUBOData()
@@ -237,7 +235,7 @@ class QUBOUnfolder(object):
         Nsyst = self.n_syst
 
         # regularization (Laplacian matrix)
-        self.D = d2b.laplacian(self.n_bins_truth)
+        self.D = laplacian(self.n_bins_truth)
 
         # systematics
         self.S = np.zeros([Nbins, Nbins])

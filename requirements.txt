@@ -1,6 +1,8 @@
 dimod
 dwave-system
 dwave-neal
+dwave_networkx
+dwave-qbsolv
 hyperopt
 matplotlib
 minorminer

@@ -33,17 +33,17 @@ python tests/toy_unfolding_classical.py
 
 Test QUBO unfolding using the `dimod` package:
 ```
-./unfolding_qubo.py -l 0 # no regularization
-./unfolding_qubo.py -l 1 # regularization strength = 1
-./unfolding_qubo.py -l 2 # regularization strength = 2
+python experiments/unfolding_qubo.py -l 0 # no regularization
+python experiments/unfolding_qubo.py -l 1 # regularization strength = 1
+python experiments/unfolding_qubo.py -l 2 # regularization strength = 2
 # etc..
 ```
 
 Chose your backend wisely!
 ```
-./unfolding_qubo.py -l 0 -b cpu # use CPU 
-./unfolding_qubo.py -l 0 -b sim -n 2000 # use simulated annealer NEAL
-./unfolding_qubo.py -l 0 -b qpu -n 2000 # use real QPU: you need a DWave Leap token
+python experiments/unfolding_qubo.py -l 0 -b cpu # use CPU 
+python experiments/unfolding_qubo.py -l 0 -b sim -n 2000 # use simulated annealer NEAL
+python experiments/unfolding_qubo.py -l 0 -b qpu -n 2000 # use real QPU: you need a DWave Leap token
 ```
 
 # Closure test
@@ -51,7 +51,7 @@ Chose your backend wisely!
 Using e.g. a 5x5 matrix:
  
 ```
-./unfolding_qubo.py -l 0 -n 10000 -b sim
+python experiments/unfolding_qubo.py -l 0 -n 10000 -b sim
 ```
 
 # Unfolding with standard methods
@@ -76,44 +76,44 @@ ln -s $HOME/development/RooUnfold/src/ .
 
 Then run:
 ```
-./unfolding_baseline.py
+python experiments/unfolding_baseline.py
 ```
 
 With systematics:
 ```
-./unfolding_baseline_syst.py # this gives you D'Agostini etc.
+python experiments/unfolding_baseline_syst.py # this gives you D'Agostini etc.
 
 # Neal
-./unfolding_qubo_syst.py -n 5000 -b sim -l 0.0
-./unfolding_qubo_syst.py -n 5000 -b sim -l 0.5
-./unfolding_qubo_syst.py -n 5000 -b sim -l 1.0
+python experiments/unfolding_qubo_syst.py -n 5000 -b sim -l 0.0
+python experiments/unfolding_qubo_syst.py -n 5000 -b sim -l 0.5
+python experiments/unfolding_qubo_syst.py -n 5000 -b sim -l 1.0
 
 # QPU
-./unfolding_qubo_syst.py -n 5000 -b qpu -l 0.0
-./unfolding_qubo_syst.py -n 5000 -b qpu -l 0.5  
-./unfolding_qubo_syst.py -n 5000 -b qpu -l 1.0
+python experiments/unfolding_qubo_syst.py -n 5000 -b qpu -l 0.0
+python experiments/unfolding_qubo_syst.py -n 5000 -b qpu -l 0.5  
+python experiments/unfolding_qubo_syst.py -n 5000 -b qpu -l 1.0
 ```
 
 To speed up:
 ```
-for i in $(seq 20) ; do ./unfolding_qubo.py -b qpu -l 0 | tail -n 1 ; done
-for i in $(seq 20) ; do ./unfolding_qubo.py -b qpu -l 1 | tail -n 1 ; done 
+for i in $(seq 20) ; do python experiments/unfolding_qubo.py -b qpu -l 0 | tail -n 1 ; done
+for i in $(seq 20) ; do python experiments/unfolding_qubo.py -b qpu -l 1 | tail -n 1 ; done 
 ```
 
 or equivalently:
 ```
-./unfold_qubo.sh -b qpu -n 20 -l 0
-./unfold_qubo.sh -b qpu -n 20 -l 1
+experiments/unfold_qubo.sh -b qpu -n 20 -l 0
+experiments/unfold_qubo.sh -b qpu -n 20 -l 1
 ```
 
 Make plots:
 ```
-./plot_unfolded.py # unfolded only nominal, no systematics
-./plot_unfolded_syst.py # unfolded w/ systematics
+python plots/plot_unfolded.py # unfolded only nominal, no systematics
+python plots/plot_unfolded_syst.py # unfolded w/ systematics
 ```
 
 # Running in hybrid mode
 
 ```
-DWAVE_HYBRID_LOG_LEVEL=INFO ./unfolding_qubo.py -b hyb
+DWAVE_HYBRID_LOG_LEVEL=INFO python experiments/unfolding_qubo.py -b hyb
 ```

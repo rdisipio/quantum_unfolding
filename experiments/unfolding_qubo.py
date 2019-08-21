@@ -4,11 +4,14 @@ import os
 import sys
 import argparse
 import datetime as dt
-import numpy as np
-from scipy import optimize
 import matplotlib.pyplot as plt
-from decimal2binary import *
-from unfolder import *
+import numpy as np
+from scipy import optimize, stats
+from sklearn.metrics import accuracy_score
+from scipy.spatial.distance import hamming
+
+from quantum_unfolding import Backends, get_energy, QUBOUnfolder, StatusCode
+from input_data import input_data, R0
 
 np.set_printoptions(precision=3, linewidth=500, suppress=True)
 
@@ -31,8 +34,6 @@ if dry_run:
     print("WARNING: dry run. There will be no results at the end.")
 
 unfolder = QUBOUnfolder()
-
-from input_data import *
 
 # Signal (reference MC)
 x = input_data[obs]['truth']
@@ -88,7 +89,6 @@ y = unfolder._encoder.decode(q)
 energy_true_x = get_energy(bqm, x_b)
 energy_true_z = get_energy(bqm, z_b)
 
-from scipy import stats
 dof = N - 1
 chi2, p = stats.chisquare(y, z, dof)
 chi2dof = chi2 / float(dof)
@@ -97,11 +97,9 @@ print("INFO: best-fit:   ", q, "::", y, ":: E =", energy_bestfit,
       ":: chi2/dof = %.2f" % chi2dof)
 print("INFO: truth value:", z_b, "::", z, ":: E =", energy_true_z)
 
-from sklearn.metrics import accuracy_score
 score = accuracy_score(z_b, q)
 print("INFO: accuracy:", score)
 
-from scipy.spatial.distance import hamming
 hamm = hamming(z_b, q)
 print("Hamming:", hamm)
 

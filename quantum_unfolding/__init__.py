@@ -8,10 +8,15 @@ Provides
 """
 __version__ = "1.0.0"
 from .decimal2binary import  binary_matmul, d2b, discretize_matrix,  discretize_vector, BinaryEncoder, laplacian
+from .unfolder import Backends, QUBOUnfolder, StatusCode
+from .dwave_tools import get_energy
 
-__all__ = ['BinaryEncoder',
+__all__ = ['Backends',
+           'BinaryEncoder',
            'binary_matmul',
            'd2b',
            'discretize_matrix',
            'discretize_vector',
-           'laplacian']
+           'get_energy',
+           'laplacian',
+           'StatusCode']
