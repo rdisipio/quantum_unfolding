@@ -11,7 +11,7 @@ from sklearn.metrics import accuracy_score
 from scipy.spatial.distance import hamming
 
 from quantum_unfolding import Backends, get_energy, QUBOUnfolder, StatusCode
-from input_data import input_data, R0
+from quantum_unfolding.input_data import input_data, R0
 
 np.set_printoptions(precision=3, linewidth=500, suppress=True)
 

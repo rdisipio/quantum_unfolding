@@ -34,7 +34,7 @@ if dry_run:
 
 unfolder = QUBOUnfolder()
 
-from input_data import *
+from quantum_unfolding.input_data import *
 
 # Signal (reference MC)
 x = input_data[obs]['truth']
