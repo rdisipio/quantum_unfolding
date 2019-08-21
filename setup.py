@@ -25,5 +25,13 @@ setup(
         'Topic :: Scientific/Engineering :: Physics',
         'Intended Audience :: Science/Research',
         'Programming Language :: Python'
-    ]
+    ],
+    scripts=[   'experiments/unfold_qubo_parallel.sh',
+                'experiments/unfold_qubo_syst_parallel.sh', 
+                'experiments/unfold_qubo.sh',
+                'experiments/unfold_qubo_syst.sh',
+                'experiments/unfolding_baseline.py', 
+                'experiments/unfolding_qubo_syst.py',
+                'experiments/unfolding_qubo.py',
+            ]
 )
