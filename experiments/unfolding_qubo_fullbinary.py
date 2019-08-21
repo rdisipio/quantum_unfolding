@@ -3,11 +3,12 @@
 import os
 import sys
 import argparse
-import numpy as np
-from scipy import optimize
 import matplotlib.pyplot as plt
-from decimal2binary import *
+import numpy as np
 import dimod
+from scipy import optimize
+
+from quantum_unfolding import compact_vector, d2b, discretize_vector, laplacian
 
 np.set_printoptions(precision=1, linewidth=200, suppress=True)
 

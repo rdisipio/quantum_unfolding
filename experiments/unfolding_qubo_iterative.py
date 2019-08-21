@@ -8,16 +8,11 @@ import numpy as np
 from scipy import stats
 from scipy.spatial.distance import hamming
 from scipy import stats
-
-from decimal2binary import *
-from input_data import *
-
-# DWave stuff
 import dimod
 import neal
-
 from dwave.system import EmbeddingComposite, FixedEmbeddingComposite, TilingComposite, DWaveSampler
-from dwave_tools import get_embedding_with_short_chain, get_energy, anneal_sched_custom, make_reverse_anneal_schedule
+
+from quantum_unfolding import anneal_sched_custom, get_embedding_with_short_chain, get_energy, make_reverse_anneal_schedule
 
 np.set_printoptions(precision=1, linewidth=200, suppress=True)
 

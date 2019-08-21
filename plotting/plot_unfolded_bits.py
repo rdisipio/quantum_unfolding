@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from quantum_unfolding import input_data
 
 sns.set()
 sns.set_style("white")
@@ -44,8 +45,6 @@ def FromFile(csv_file):
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-from quantum_unfolding.input_data import *
 
 parser = argparse.ArgumentParser("Quantum unfolding plotter")
 parser.add_argument('-o', '--observable', default='peak')
