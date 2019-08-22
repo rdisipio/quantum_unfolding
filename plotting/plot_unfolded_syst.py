@@ -57,6 +57,8 @@ def FromFile(csv_file):
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+from quantum_unfolding.input_data import sigma_syst
+
 #z = np.hstack( [input_data[obs]['pdata'], sigma_syst] )
 z = input_data[obs]['truth']
 nbins = input_data[obs]['truth'].shape[0]
@@ -137,7 +139,7 @@ ax_main.set_xticklabels([1, 2, 3, 4, 5])
 ax_main.tick_params(labelsize=14)
 
 for isyst in range(Nsyst):
-    l_length = 0.2
+    l_length = 0.4
     x = sigma_syst[isyst]
     ymin = (1 / float(Nsyst)) * (0.5 + isyst) - l_length
     ymax = (1 / float(Nsyst)) * (0.5 + isyst) + l_length
@@ -152,10 +154,12 @@ for imethod in range(1, n_methods + 1):
     method = known_methods[imethod - 1]
     #print(method, unfolded_data[method]['mean'][Nbins:])
 
+    scale = 0.1 #0.05
+    offset = 2*scale #0.1
     for isyst in range(Nsyst):
 
         x = unfolded_data[method]['mean'][Nbins:][isyst]
-        y = isyst - 0.05 * imethod + 0.1
+        y = isyst - scale * imethod + offset
         dx = unfolded_data[method]['rms'][Nbins:][isyst]
         print("method:", method, "syst:", isyst, x, dx)
         ax_syst.errorbar(x,
