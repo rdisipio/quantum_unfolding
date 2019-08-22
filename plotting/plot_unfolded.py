@@ -5,11 +5,12 @@ import argparse
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
 from matplotlib import rc
 rc('font', **{'family': 'serif', 'serif': ['Palatino']})
 rc('text', usetex=True)
 rc('legend', **{'fontsize': 13})
+from quantum_unfolding import input_data
+
 
 known_methods = [
     'IB4',
@@ -49,8 +50,6 @@ def FromFile(csv_file):
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-from quantum_unfolding.input_data import *
 
 parser = argparse.ArgumentParser("Quantum unfolding plotter")
 parser.add_argument('-o', '--observable', default='peak')

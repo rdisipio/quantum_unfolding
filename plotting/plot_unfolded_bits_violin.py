@@ -7,11 +7,10 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
-
+from quantum_unfolding import input_data
+from matplotlib import rc
 sns.set()
 sns.set_style("white")
-
-from matplotlib import rc
 rc('font', **{'family': 'serif', 'serif': ['Palatino']})
 rc('text', usetex=True)
 rc('legend', **{'fontsize': 13})
@@ -48,8 +47,6 @@ def FromFile(csv_file):
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-from quantum_unfolding.input_data import *
 
 parser = argparse.ArgumentParser("Quantum unfolding plotter")
 parser.add_argument('-o', '--observable', default='falling')

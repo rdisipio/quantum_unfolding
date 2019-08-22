@@ -8,7 +8,7 @@ from ROOT import *
 import numpy as np
 import scipy.stats
 
-from input_data import R0 as R
+from quantum_unfolding import R0 as R
 
 np.set_printoptions(precision=2, linewidth=200, suppress=True)
 

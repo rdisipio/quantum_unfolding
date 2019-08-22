@@ -3,9 +3,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-import dwave_tools
+from quantum_unfolding import anneal_sched_custom
 
-schedule = dwave_tools.anneal_sched_custom()
+schedule = anneal_sched_custom()
 
 fig, ax = plt.subplots(tight_layout=True, figsize=(10, 6))
 

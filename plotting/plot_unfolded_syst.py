@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-
+from quantum_unfolding import input_data
 from matplotlib import rc
 rc('font', **{'family': 'serif', 'serif': ['Palatino']})
 rc('text', usetex=True)
@@ -56,8 +56,6 @@ def FromFile(csv_file):
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-from quantum_unfolding.input_data import *
 
 #z = np.hstack( [input_data[obs]['pdata'], sigma_syst] )
 z = input_data[obs]['truth']

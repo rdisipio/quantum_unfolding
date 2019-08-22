@@ -9,14 +9,10 @@ import pandas as pd
 import hyperopt as hp
 from scipy import stats
 from scipy.spatial.distance import hamming
-
-from decimal2binary import *
-from input_data import *
-
-# DWave stuff
 import dimod
 from dwave.system import EmbeddingComposite, FixedEmbeddingComposite, TilingComposite, DWaveSampler
-from dwave_tools import get_embedding_with_short_chain, get_energy, anneal_sched_custom, merge_substates
+
+from quantum_unfolding import compact_vector, laplacian, R0, get_embedding_with_short_chain, get_energy, anneal_sched_custom, merge_substates
 
 np.set_printoptions(precision=1, linewidth=200, suppress=True)
 
