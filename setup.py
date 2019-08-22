@@ -40,6 +40,7 @@ setup(
                 'experiments/unfolding_baseline.py', 
                 'experiments/unfolding_qubo_syst.py',
                 'experiments/unfolding_qubo.py',
+                'experiments/systematics_analyzer.py',
                 'plotting/plot_unfolded.py',
                 'plotting/plot_unfolded_syst.py',
                 'plotting/plot_unfolded_bits.py',
