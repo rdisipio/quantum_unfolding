@@ -36,8 +36,8 @@ labels = {
     #'IB4'               : "D\'Agostini ItrBayes ($N_{itr}$=4)",
     'sim_gamma0': "QUBO (CPU, Neal, $\gamma$=0)",
     'sim_gamma1': "QUBO (CPU, Neal, $\gamma$=1000)",
-    'qpu_lonoise_reg0_gamma0': "QUBO (QPU, lower noise, $\gamma$=0)",
-    'qpu_lonoise_reg0_gamma1': "QUBO (QPU, lower noise, $\gamma$=1000)",
+    'qpu_lonoise_reg0_gamma0': "QUBO (QPU, $\gamma$=0)",
+    'qpu_lonoise_reg0_gamma1': "QUBO (QPU, $\gamma$=1000)",
     #'hyb_reg0'          : "QUBO (Hybrid, $\lambda$=0)",
     #'hyb_reg1'          : "QUBO (Hybrid, $\lambda$=1)",
 }
@@ -75,10 +75,10 @@ unfolded_data = {
     FromFile(f"data/results_syst.obs_{obs}.sim.reg_0.gamma_1000.4bits.csv"),
     'qpu_lonoise_reg0_gamma0':
     FromFile(
-        f"data/results_syst.obs_{obs}.qpu_lonoise.reg_0.gamma_0.4bits.csv"),
+        f"data/results_syst.obs_{obs}.qpu_hinoise.reg_0.gamma_0.4bits.csv"),
     'qpu_lonoise_reg0_gamma1':
     FromFile(
-        f"data/results_syst.obs_{obs}.qpu_lonoise.reg_0.gamma_1000.4bits.csv"),
+        f"data/results_syst.obs_{obs}.qpu_hinoise.reg_0.gamma_300.4bits.csv"),
 
     #'hyb_reg0'         : FromFile(f"results.obs_{obs}.hyb.reg_0.csv"),
     #'hyb_reg1'         : FromFile(f"results.obs_{obs}.hyb.reg_1.csv"),
@@ -87,7 +87,7 @@ unfolded_data = {
 Nbins = 5
 Nsyst = 1
 
-colors = ['black', 'red', 'gold', 'seagreen', 'blue']
+colors = ['black', 'red', 'orange', 'seagreen', 'blue']
 #          'gold', 'cyan', 'violet', 'navyblue']
 # colors = ['black', 'salmon', 'royalblue', 'lightgreen', 'gold']
 markers = ['o', 'v', '^', 'D', 'o']
