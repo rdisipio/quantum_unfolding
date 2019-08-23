@@ -2,7 +2,8 @@
 
 This repository is the computational appendix of the following paper:
 
-Kyle Cormier, Riccardo Di Sipio, Peter Wittek . [Unfolding as quantum annealing](https://arxiv.org/abs/1908.XXXXX). *arXiv:1908.XXXXX*, 2019.
+Kyle Cormier, Riccardo Di Sipio, Peter Wittek . [Unfolding as quantum annealing](https://arxiv.org/abs/1908.08519
+). *arXiv:1908.08519*, 2019.
 
 Check out package with `git clone https://github.com/rdisipio/quantum_unfolding.git`. The required packages are list in `requirements.txt`. For the baseline results, you will also need RooUnfold; see the instructions below.
 
