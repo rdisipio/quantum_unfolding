@@ -27,14 +27,8 @@ def laplacian_nbits(N, n=8):
     return A
 
 
-def discretize_vector(x, encoding=[]):
+def discretize_vector(x,n=8):
     N = len(x)
-    n = 0
-
-    if len(encoding) == 0:
-        n = 4
-        encoding = np.array([n] * N)
-
     q = np.zeros(N * n)
     for i in range(N - 1, -1, -1):
         x_d = int(x[i])
@@ -47,14 +41,8 @@ def discretize_vector(x, encoding=[]):
     return np.uint8(q)
 
 
-def compact_vector(q, encoding=[]):
-    n = 0
-    N = 0
-    if len(encoding) == 0:
-        n = 4
-        N = q.shape[0] // n
-        encoding = np.array([n] * N)
-
+def compact_vector(q, n=8):
+    N = q.shape[0] // n
     x = np.zeros(N, dtype='uint8')
     for i in range(N):
         for j in range(n):
@@ -63,7 +51,7 @@ def compact_vector(q, encoding=[]):
     return x
 
 
-def discretize_matrix(A, encoding=[]):
+def discretize_matrix(A, n=8):
     # x has N elements (decimal)
     # q has Nx elements (binary)
     # A has N columns
@@ -72,11 +60,6 @@ def discretize_matrix(A, encoding=[]):
 
     N = A.shape[0]
     M = A.shape[1]
-
-    n = 0
-    if len(encoding) == 0:
-        n = 4
-
     D = np.zeros([N, M * n])
 
     for i in range(M):
